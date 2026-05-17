@@ -274,6 +274,10 @@ class PackageDetailsPopup(Gtk.Window):
             action_label = _("Remove") if installed else _("Install")
             self.action_button = Gtk.Button(label=action_label)
             self.action_button.connect("clicked", self.on_action_clicked)
+            if installed:
+                # Start disabled until revdep check confirms it's safe
+                self.action_button.set_sensitive(False)
+                self.action_button.set_tooltip_text(_("Checking dependencies..."))
             button_box.pack_end(self.action_button, False, False, 0)
 
         outer_box.pack_end(button_box, False, False, 0)
@@ -337,13 +341,16 @@ class PackageDetailsPopup(Gtk.Window):
         GLib.idle_add(self.update_expander_label, self.required_by_expander, count)
         if sorted_required_by:
             GLib.idle_add(self.update_textview, self.required_by_textview, "\n".join(sorted_required_by))
-            # Disable Remove button if package has revdeps — removal would fail
+            # Keep Remove button disabled — has revdeps
             if self.package_info.get("installed", False) and self.action_button:
-                GLib.idle_add(self.action_button.set_sensitive, False)
                 GLib.idle_add(self.action_button.set_tooltip_text,
                               _("Cannot remove: other packages depend on this one"))
         else:
             GLib.idle_add(self.update_textview, self.required_by_textview, _("There are no packages installed that require this package."))
+            # No revdeps — safe to enable Remove button
+            if self.package_info.get("installed", False) and self.action_button:
+                GLib.idle_add(self.action_button.set_sensitive, True)
+                GLib.idle_add(self.action_button.set_tooltip_text, "")
 
     def load_package_files_info(self, *args):
         category = self.package_info.get("category", "")
