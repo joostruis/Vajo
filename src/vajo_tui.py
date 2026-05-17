@@ -223,11 +223,14 @@ class Menu:
             win.border()
             attrs = curses.A_REVERSE
 
+            base_items = self.get_base_menu_items()[self.active_menu]
+
             for idx, it in enumerate(items):
-                is_update_repos = (self.active_menu == 0 and idx == 0)
-                is_full_upgrade = (self.active_menu == 0 and idx == 1)
-                is_cache_item = (self.active_menu == 0 and idx == 3)
-                is_rollback_item = (self.active_menu == 0 and idx == 4)
+                base = base_items[idx] if idx < len(base_items) else it
+                is_update_repos = (self.active_menu == 0 and it == _("Update repositories"))
+                is_full_upgrade = (self.active_menu == 0 and it == _("Full system upgrade"))
+                is_cache_item = (self.active_menu == 0 and base is None)
+                is_rollback_item = (self.active_menu == 0 and base is False)
                 item_attr = attrs if idx == self.selected_index else curses.A_NORMAL
 
                 if is_update_repos and self.is_pinned:
