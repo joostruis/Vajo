@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC
+ "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
+<policyconfig>
+  <action id="org.mocaccino.vajo.run">
+    <description>Run Vajo Package Manager GUI with root privileges</description>
+    <message>Authentication is required to run the Vajo Package Manager GUI with root privileges</message>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>auth_admin_keep</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotations>
+      <annotation key="org.freedesktop.policykit.exec.path" value="/usr/bin/vajo.sh"/>
+      <annotation key="org.freedesktop.policykit.exec.allow_gui" value="true"/>
+    </annotations>
+  </action>
