@@ -714,7 +714,7 @@ class LuetTUI:
             self.results_win.addstr(0, 2, " " + _(" Results ") + " ", dim_attr)
             
             # Updated header with upgrade symbol column
-            header = f"{_('Category'):16.16} {_('Name'):28.28} {'':2} {_('Version'):16.16} {_('Repository'):20.20} {_('Action'):8}"
+            header = f"{_('Category'):16.16} {_('Name'):28.28} {'':2} {_('Version'):16.16} {_('Repository'):30.30} {_('Action'):8}"
             self.results_win.addstr(1, 1, header[:win_w-2], header_attr)
 
             if self.selected_index < self.results_scroll_offset:
@@ -743,7 +743,7 @@ class LuetTUI:
                 version_to_display = pkg.get("version", "")
                 
                 # Updated line format with upgrade symbol
-                line = f"{pkg.get('category','')[:16]:16} {pkg.get('name','')[:28]:28} {upgrade_symbol:2} {version_to_display[:16]:16} {pkg.get('repository','')[:20]:20} {action:8}"
+                line = f"{pkg.get('category','')[:16]:16} {pkg.get('name','')[:28]:28} {upgrade_symbol:2} {version_to_display[:16]:16} {pkg.get('repository','')[:30]:30} {action:8}"
                 
                 attr = dim_attr
                 if not is_busy and self.focus == 'list' and row_idx == self.selected_index:
