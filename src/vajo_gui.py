@@ -124,7 +124,6 @@ class PackageDetailsPopup(Gtk.Window):
         self.run_command_sync = run_command_sync_func
         self.package_info = package_info
         self.on_action_callback = on_action_callback
-        self.action_triggered = False
         self.action_button = None
         self.loaded_package_files = {}
         self.all_files = []
@@ -275,10 +274,6 @@ class PackageDetailsPopup(Gtk.Window):
             action_label = _("Remove") if installed else _("Install")
             self.action_button = Gtk.Button(label=action_label)
             self.action_button.connect("clicked", self.on_action_clicked)
-            if installed:
-                # Start disabled until revdep check confirms it's safe
-                self.action_button.set_sensitive(False)
-                self.action_button.set_tooltip_text(_("Checking dependencies..."))
             button_box.pack_end(self.action_button, False, False, 0)
 
         outer_box.pack_end(button_box, False, False, 0)
@@ -292,7 +287,6 @@ class PackageDetailsPopup(Gtk.Window):
     def on_action_clicked(self, button):
         """Close the window and trigger the install/remove action."""
         if self.on_action_callback:
-            self.action_triggered = True
             self.on_action_callback(self.package_info)
         self.destroy()
 
@@ -343,16 +337,13 @@ class PackageDetailsPopup(Gtk.Window):
         GLib.idle_add(self.update_expander_label, self.required_by_expander, count)
         if sorted_required_by:
             GLib.idle_add(self.update_textview, self.required_by_textview, "\n".join(sorted_required_by))
-            # Keep Remove button disabled — has revdeps
+            # Disable Remove button if package has revdeps — removal would fail
             if self.package_info.get("installed", False) and self.action_button:
+                GLib.idle_add(self.action_button.set_sensitive, False)
                 GLib.idle_add(self.action_button.set_tooltip_text,
                               _("Cannot remove: other packages depend on this one"))
         else:
             GLib.idle_add(self.update_textview, self.required_by_textview, _("There are no packages installed that require this package."))
-            # No revdeps — safe to enable Remove button
-            if self.package_info.get("installed", False) and self.action_button:
-                GLib.idle_add(self.action_button.set_sensitive, True)
-                GLib.idle_add(self.action_button.set_tooltip_text, "")
 
     def load_package_files_info(self, *args):
         category = self.package_info.get("category", "")
@@ -1247,7 +1238,7 @@ class SearchApp(Gtk.Window):
         popup = PackageDetailsPopup(self.command_runner.run_sync, package_info, on_action_callback=self.on_details_action)
         
         popup.set_modal(True)
-        popup.connect("destroy", lambda w: self.enable_gui() if not w.action_triggered else None)
+        popup.connect("destroy", lambda w: self.enable_gui())
         popup.show_all()
         self.disable_gui()
 
@@ -1622,8 +1613,17 @@ class SearchApp(Gtk.Window):
             box.set_margin_top(12)
             box.set_margin_bottom(12)
 
-            label = Gtk.Label(label=_("Choose a version to roll back to:"))
-            label.set_halign(Gtk.Align.START)
+            label = Gtk.Label()
+            label.set_markup(_(
+                "<b>Choose a version to roll back to:</b>\n\n"
+                "Rolling back will downgrade all system packages to the selected snapshot "
+                "and <b>lock the system to that point in time</b>. While pinned:\n"
+                "  \u2022 Repository syncs and upgrades are disabled\n"
+                "  \u2022 Package installs still work against the pinned snapshot\n\n"
+                "You can unpin later via the same menu to resume normal updates."
+            ))
+            label.set_line_wrap(True)
+            label.set_xalign(0.0)
             box.pack_start(label, False, False, 0)
 
             liststore = Gtk.ListStore(str, str, str, str)  # label, date, desktop, community
@@ -1674,7 +1674,9 @@ class SearchApp(Gtk.Window):
             detail = _("This will revert your system to:\n\n"
                        "  Desktop:   {}\n"
                        "  Community: {}\n\n"
-                       "A full system downgrade will be performed.\n"
+                       "A full system downgrade will be performed and the system\n"
+                       "will be pinned to this snapshot. Updates will be disabled\n"
+                       "until you manually unpin via the Roll back menu.\n\n"
                        "Are you sure you want to continue?").format(
                 previous.get("desktop", ""),
                 previous.get("community", "")

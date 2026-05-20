@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-05-17 15:56+0200\n"
+"POT-Creation-Date: 2026-05-20 21:37+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,379 +26,387 @@ msgstr ""
 msgid "GitHub Repository"
 msgstr ""
 
-#: vajo_gui.py:122
+#: vajo_gui.py:123
 msgid "Package Details"
 msgstr ""
 
-#: vajo_gui.py:157
+#: vajo_gui.py:161
 msgid "Package:"
 msgstr ""
 
-#: vajo_gui.py:158
+#: vajo_gui.py:162
 msgid "Version:"
 msgstr ""
 
-#: vajo_gui.py:159
+#: vajo_gui.py:163
 msgid "Installed:"
 msgstr ""
 
-#: vajo_gui.py:159 vajo_core.py:1185
+#: vajo_gui.py:163 vajo_core.py:1185
 msgid "Yes"
 msgstr ""
 
-#: vajo_gui.py:159 vajo_core.py:1185
+#: vajo_gui.py:163 vajo_core.py:1185
 msgid "No"
 msgstr ""
 
-#: vajo_gui.py:196
+#: vajo_gui.py:200
 msgid "Repository:"
 msgstr ""
 
-#: vajo_gui.py:204
+#: vajo_gui.py:208
 msgid "Description:"
 msgstr ""
 
-#: vajo_gui.py:212
+#: vajo_gui.py:216
 msgid "License:"
 msgstr ""
 
-#: vajo_gui.py:219
+#: vajo_gui.py:223
 msgid "Required by"
 msgstr ""
 
-#: vajo_gui.py:231
+#: vajo_gui.py:235
 msgid "Package files"
 msgstr ""
 
-#: vajo_gui.py:233
+#: vajo_gui.py:237
 msgid "Filter files..."
 msgstr ""
 
-#: vajo_gui.py:238 vajo_gui.py:567 vajo_tui.py:144
+#: vajo_gui.py:242 vajo_gui.py:592 vajo_tui.py:144
 msgid "File"
 msgstr ""
 
-#: vajo_gui.py:260 vajo_gui.py:1471
+#: vajo_gui.py:269 vajo_gui.py:1511
 msgid "Close"
 msgstr ""
 
-#: vajo_gui.py:292
+#: vajo_gui.py:274 vajo_gui.py:952 vajo_tui.py:735
+msgid "Remove"
+msgstr ""
+
+#: vajo_gui.py:274 vajo_gui.py:955 vajo_tui.py:737
+msgid "Install"
+msgstr ""
+
+#: vajo_gui.py:312
 msgid "Copy All Files"
 msgstr ""
 
-#: vajo_gui.py:313
+#: vajo_gui.py:333
 msgid "Error retrieving required by information."
 msgstr ""
 
-#: vajo_gui.py:321
+#: vajo_gui.py:344
+msgid "Cannot remove: other packages depend on this one"
+msgstr ""
+
+#: vajo_gui.py:346
 msgid "There are no packages installed that require this package."
 msgstr ""
 
-#: vajo_gui.py:331
+#: vajo_gui.py:356
 msgid "Loading..."
 msgstr ""
 
-#: vajo_gui.py:342
+#: vajo_gui.py:367
 msgid "Error retrieving package files information."
 msgstr ""
 
-#: vajo_gui.py:345
+#: vajo_gui.py:370
 msgid "No files found for this package."
 msgstr ""
 
-#: vajo_gui.py:374
+#: vajo_gui.py:399
 msgid "revdeps failed:"
 msgstr ""
 
-#: vajo_gui.py:383
+#: vajo_gui.py:408
 msgid "Error retrieving required by info:"
 msgstr ""
 
-#: vajo_gui.py:391
+#: vajo_gui.py:416
 msgid "search for package failed:"
 msgstr ""
 
-#: vajo_gui.py:399
+#: vajo_gui.py:424
 msgid "Error retrieving package files info:"
 msgstr ""
 
-#: vajo_gui.py:408
+#: vajo_gui.py:433
 msgid "Luet Package Search"
 msgstr ""
 
-#: vajo_gui.py:455
+#: vajo_gui.py:480
 msgid "Warning: no pkexec/sudo found - admin actions will fail"
 msgstr ""
 
-#: vajo_gui.py:459 vajo_tui.py:371
+#: vajo_gui.py:484 vajo_tui.py:371
 msgid "Initializing..."
 msgstr ""
 
-#: vajo_gui.py:502 vajo_gui.py:589 vajo_gui.py:1097 vajo_gui.py:1220
-#: vajo_gui.py:1236 vajo_gui.py:1287 vajo_gui.py:1320 vajo_gui.py:1382
-#: vajo_gui.py:1412 vajo_tui.py:312 vajo_tui.py:443 vajo_tui.py:515
+#: vajo_gui.py:527 vajo_gui.py:614 vajo_gui.py:1122 vajo_gui.py:1260
+#: vajo_gui.py:1276 vajo_gui.py:1327 vajo_gui.py:1360 vajo_gui.py:1422
+#: vajo_gui.py:1452 vajo_tui.py:312 vajo_tui.py:443 vajo_tui.py:515
 #: vajo_tui.py:560 vajo_tui.py:915 vajo_tui.py:964 vajo_tui.py:993
-#: vajo_tui.py:995 vajo_tui.py:1030 vajo_tui.py:1091 vajo_tui.py:1100
-#: vajo_tui.py:1113 vajo_tui.py:1126 vajo_tui.py:1146 vajo_tui.py:1279
-#: vajo_tui.py:1307 vajo_tui.py:1807 vajo_tui.py:1839 vajo_core.py:521
+#: vajo_tui.py:995 vajo_tui.py:1030 vajo_tui.py:1092 vajo_tui.py:1101
+#: vajo_tui.py:1114 vajo_tui.py:1129 vajo_tui.py:1149 vajo_tui.py:1282
+#: vajo_tui.py:1310 vajo_tui.py:1860 vajo_tui.py:1892 vajo_core.py:521
 msgid "Ready"
 msgstr ""
 
-#: vajo_gui.py:537 vajo_tui.py:150 vajo_tui.py:275
+#: vajo_gui.py:562 vajo_tui.py:150 vajo_tui.py:275
 msgid "Update repositories"
 msgstr ""
 
-#: vajo_gui.py:541 vajo_tui.py:150 vajo_tui.py:278
+#: vajo_gui.py:566 vajo_tui.py:150 vajo_tui.py:278
 msgid "Full system upgrade"
 msgstr ""
 
-#: vajo_gui.py:544 vajo_tui.py:150 vajo_tui.py:281
+#: vajo_gui.py:569 vajo_tui.py:150 vajo_tui.py:281
 msgid "Installed packages"
 msgstr ""
 
-#: vajo_gui.py:547 vajo_tui.py:150 vajo_tui.py:283
+#: vajo_gui.py:572 vajo_tui.py:150 vajo_tui.py:283
 msgid "Check system"
 msgstr ""
 
-#: vajo_gui.py:550 vajo_gui.py:1451 vajo_gui.py:1565 vajo_tui.py:191
+#: vajo_gui.py:575 vajo_gui.py:1491 vajo_gui.py:1605 vajo_tui.py:191
 #: vajo_tui.py:288
 msgid "Roll back"
 msgstr ""
 
-#: vajo_gui.py:554 vajo_gui.py:1438 vajo_tui.py:159 vajo_core.py:655
+#: vajo_gui.py:579 vajo_gui.py:1478 vajo_tui.py:159 vajo_core.py:655
 msgid "Clear Luet cache"
 msgstr ""
 
-#: vajo_gui.py:557 vajo_tui.py:150 vajo_tui.py:273
+#: vajo_gui.py:582 vajo_tui.py:150 vajo_tui.py:273
 msgid "Quit"
 msgstr ""
 
-#: vajo_gui.py:561 vajo_tui.py:151 vajo_tui.py:293
+#: vajo_gui.py:586 vajo_tui.py:151 vajo_tui.py:293
 msgid "Documentation"
 msgstr ""
 
-#: vajo_gui.py:564 vajo_tui.py:151 vajo_tui.py:295 vajo_tui.py:297
+#: vajo_gui.py:589 vajo_tui.py:151 vajo_tui.py:295 vajo_tui.py:297
 msgid "About"
 msgstr ""
 
-#: vajo_gui.py:569 vajo_tui.py:144
+#: vajo_gui.py:594 vajo_tui.py:144
 msgid "Help"
 msgstr ""
 
-#: vajo_gui.py:602 vajo_tui.py:670
+#: vajo_gui.py:627 vajo_tui.py:670
 msgid "Enter package name"
 msgstr ""
 
-#: vajo_gui.py:605
+#: vajo_gui.py:630
 msgid "Advanced"
 msgstr ""
 
-#: vajo_gui.py:607
+#: vajo_gui.py:632
 msgid "Check this box to also search inside filenames and labels"
 msgstr ""
 
-#: vajo_gui.py:610 vajo_tui.py:658
+#: vajo_gui.py:635 vajo_tui.py:658
 msgid "Search"
 msgstr ""
 
-#: vajo_gui.py:628 vajo_tui.py:714
+#: vajo_gui.py:653 vajo_tui.py:714
 msgid "Category"
 msgstr ""
 
-#: vajo_gui.py:629 vajo_tui.py:714
+#: vajo_gui.py:654 vajo_tui.py:714
 msgid "Name"
 msgstr ""
 
-#: vajo_gui.py:631 vajo_gui.py:1592 vajo_tui.py:714 vajo_core.py:1167
+#: vajo_gui.py:656 vajo_gui.py:1641 vajo_tui.py:714 vajo_core.py:1167
 msgid "Version"
 msgstr ""
 
-#: vajo_gui.py:632 vajo_tui.py:714 vajo_core.py:1172
+#: vajo_gui.py:657 vajo_tui.py:714 vajo_core.py:1172
 msgid "Repository"
 msgstr ""
 
-#: vajo_gui.py:633 vajo_tui.py:714
+#: vajo_gui.py:658 vajo_tui.py:714
 msgid "Action"
 msgstr ""
 
-#: vajo_gui.py:634 vajo_gui.py:952
+#: vajo_gui.py:659 vajo_gui.py:977
 msgid "Details"
 msgstr ""
 
-#: vajo_gui.py:703 vajo_tui.py:764 vajo_tui.py:789
+#: vajo_gui.py:728 vajo_tui.py:764 vajo_tui.py:789
 msgid "Toggle output log"
 msgstr ""
 
-#: vajo_gui.py:820 vajo_gui.py:1087 vajo_gui.py:1368 vajo_tui.py:949
-#: vajo_tui.py:1140 vajo_tui.py:1193 vajo_tui.py:1308
+#: vajo_gui.py:845 vajo_gui.py:1112 vajo_gui.py:1408 vajo_tui.py:949
+#: vajo_tui.py:1143 vajo_tui.py:1196 vajo_tui.py:1311
 msgid "installed"
 msgstr ""
 
-#: vajo_gui.py:840 vajo_tui.py:1209
+#: vajo_gui.py:865 vajo_tui.py:1212
 msgid "Invalid search query"
 msgstr ""
 
-#: vajo_gui.py:849 vajo_gui.py:1375 vajo_tui.py:1197
+#: vajo_gui.py:874 vajo_gui.py:1415 vajo_tui.py:1200
 msgid "Searching for {}..."
 msgstr ""
 
-#: vajo_gui.py:924 vajo_tui.py:733 vajo_tui.py:1299 vajo_tui.py:1382
+#: vajo_gui.py:949 vajo_tui.py:733 vajo_tui.py:1302
 msgid "Protected"
 msgstr ""
 
-#: vajo_gui.py:927 vajo_tui.py:735
-msgid "Remove"
-msgstr ""
-
-#: vajo_gui.py:930 vajo_tui.py:737
-msgid "Install"
-msgstr ""
-
-#: vajo_gui.py:958 vajo_tui.py:1278
+#: vajo_gui.py:983 vajo_tui.py:1281
 msgid "Found {} results matching '{}'"
 msgstr ""
 
-#: vajo_gui.py:958 vajo_gui.py:1236
+#: vajo_gui.py:983 vajo_gui.py:1276
 msgid "No results"
 msgstr ""
 
-#: vajo_gui.py:961
+#: vajo_gui.py:986
 msgid "Error processing search results:"
 msgstr ""
 
-#: vajo_gui.py:962
+#: vajo_gui.py:987
 msgid "Error displaying search results"
 msgstr ""
 
-#: vajo_gui.py:1076 vajo_tui.py:1298 vajo_tui.py:1381
+#: vajo_gui.py:1101 vajo_tui.py:1301 vajo_tui.py:1419
 msgid "This package ({}) is protected and can't be removed."
 msgstr ""
 
-#: vajo_gui.py:1094
+#: vajo_gui.py:1119
 msgid "Searching again for '{}'..."
 msgstr ""
 
-#: vajo_gui.py:1102 vajo_tui.py:1345
+#: vajo_gui.py:1127 vajo_tui.py:1348
 msgid "Do you want to install {}?"
 msgstr ""
 
-#: vajo_gui.py:1113 vajo_gui.py:1114 vajo_tui.py:1349
+#: vajo_gui.py:1138 vajo_gui.py:1139 vajo_tui.py:1352
 msgid "Installing {}..."
 msgstr ""
 
-#: vajo_gui.py:1122 vajo_gui.py:1160 vajo_tui.py:1325 vajo_tui.py:1356
+#: vajo_gui.py:1147 vajo_gui.py:1185 vajo_tui.py:1328 vajo_tui.py:1359
 msgid "Finalizing: Updating package cache..."
 msgstr ""
 
-#: vajo_gui.py:1130 vajo_gui.py:1137
+#: vajo_gui.py:1155 vajo_gui.py:1162
 msgid "Error installing package"
 msgstr ""
 
-#: vajo_gui.py:1142 vajo_tui.py:1315
+#: vajo_gui.py:1167 vajo_tui.py:1318
 msgid "Do you want to uninstall {}?"
 msgstr ""
 
-#: vajo_gui.py:1143
+#: vajo_gui.py:1168
 msgid ""
 "This will remove the package and its dependencies not required by other "
 "packages."
 msgstr ""
 
-#: vajo_gui.py:1151 vajo_gui.py:1152 vajo_tui.py:1318
+#: vajo_gui.py:1176 vajo_gui.py:1177 vajo_tui.py:1321
 msgid "Uninstalling {}..."
 msgstr ""
 
-#: vajo_gui.py:1168
+#: vajo_gui.py:1193
 msgid "Error uninstalling package: '{}'"
 msgstr ""
 
-#: vajo_gui.py:1182
+#: vajo_gui.py:1207
 msgid "Error uninstalling package"
 msgstr ""
 
-#: vajo_gui.py:1270 vajo_tui.py:894
+#: vajo_gui.py:1225
+msgid "Please search for the package first."
+msgstr ""
+
+#: vajo_gui.py:1310 vajo_tui.py:894
 msgid "Updating repositories..."
 msgstr ""
 
-#: vajo_gui.py:1277 vajo_tui.py:901
+#: vajo_gui.py:1317 vajo_tui.py:901
 msgid "Repositories updated"
 msgstr ""
 
-#: vajo_gui.py:1279 vajo_gui.py:1286 vajo_tui.py:906
+#: vajo_gui.py:1319 vajo_gui.py:1326 vajo_tui.py:906
 msgid "Error updating repositories"
 msgstr ""
 
-#: vajo_gui.py:1307 vajo_tui.py:986
+#: vajo_gui.py:1347 vajo_tui.py:986
 msgid "Checking system for missing files..."
 msgstr ""
 
-#: vajo_gui.py:1315
+#: vajo_gui.py:1355
 msgid "Missing files: preparing to reinstall..."
 msgstr ""
 
-#: vajo_gui.py:1320 vajo_tui.py:1001
+#: vajo_gui.py:1360 vajo_tui.py:1001
 msgid "Could not repair some packages"
 msgstr ""
 
-#: vajo_gui.py:1339 vajo_tui.py:932
+#: vajo_gui.py:1379 vajo_tui.py:932
 msgid "Perform a full system upgrade?"
 msgstr ""
 
-#: vajo_gui.py:1340
+#: vajo_gui.py:1380
 msgid ""
 "This will update all repositories and then upgrade all installed packages. "
 "This action may take some time and requires an internet connection."
 msgstr ""
 
-#: vajo_gui.py:1347
+#: vajo_gui.py:1387
 msgid "Performing full system upgrade"
 msgstr ""
 
-#: vajo_gui.py:1350 vajo_tui.py:936
+#: vajo_gui.py:1390 vajo_tui.py:936
 msgid "Performing full system upgrade..."
 msgstr ""
 
-#: vajo_gui.py:1380 vajo_tui.py:956
+#: vajo_gui.py:1420 vajo_tui.py:956
 msgid "Error during system upgrade"
 msgstr ""
 
-#: vajo_gui.py:1398 vajo_tui.py:1021
+#: vajo_gui.py:1438 vajo_tui.py:1021
 msgid "Clear Luet cache?"
 msgstr ""
 
-#: vajo_gui.py:1399
+#: vajo_gui.py:1439
 msgid "This will run 'luet cleanup' and remove cached package data."
 msgstr ""
 
-#: vajo_gui.py:1408 vajo_tui.py:1023
+#: vajo_gui.py:1448 vajo_tui.py:1023
 msgid "Clearing Luet cache..."
 msgstr ""
 
-#: vajo_gui.py:1412 vajo_tui.py:1034
+#: vajo_gui.py:1452 vajo_tui.py:1034
 msgid "Error clearing Luet cache"
 msgstr ""
 
-#: vajo_gui.py:1428 vajo_tui.py:609
+#: vajo_gui.py:1468 vajo_tui.py:609
 msgid "Last sync: {}"
 msgstr ""
 
-#: vajo_gui.py:1435 vajo_core.py:653
+#: vajo_gui.py:1475 vajo_core.py:653
 msgid "Clear Luet cache ({})"
 msgstr ""
 
-#: vajo_gui.py:1446 vajo_tui.py:189 vajo_tui.py:291
+#: vajo_gui.py:1486 vajo_tui.py:189 vajo_tui.py:291
 msgid "View pinned state"
 msgstr ""
 
-#: vajo_gui.py:1457 vajo_tui.py:472
+#: vajo_gui.py:1497 vajo_tui.py:472
 msgid "unknown"
 msgstr ""
 
-#: vajo_gui.py:1462
+#: vajo_gui.py:1502
 msgid "System is pinned to a previous version"
 msgstr ""
 
-#: vajo_gui.py:1465
+#: vajo_gui.py:1505
 msgid ""
 "Desktop: {}\n"
 "\n"
@@ -409,82 +417,93 @@ msgid ""
 "further or do a full upgrade when ready."
 msgstr ""
 
-#: vajo_gui.py:1472
+#: vajo_gui.py:1512
 msgid "Unpin"
 msgstr ""
 
-#: vajo_gui.py:1481 vajo_tui.py:503
+#: vajo_gui.py:1521 vajo_tui.py:503
 msgid "Unpinning..."
 msgstr ""
 
-#: vajo_gui.py:1501
+#: vajo_gui.py:1541
 msgid "Unpinned. You can now roll back further or upgrade."
 msgstr ""
 
-#: vajo_gui.py:1503 vajo_tui.py:518
+#: vajo_gui.py:1543 vajo_tui.py:518
 msgid "Error during unpin"
 msgstr ""
 
-#: vajo_gui.py:1513 vajo_tui.py:1085
+#: vajo_gui.py:1553 vajo_tui.py:1086
 msgid "Checking rollback availability..."
 msgstr ""
 
-#: vajo_gui.py:1518 vajo_tui.py:1094
+#: vajo_gui.py:1558 vajo_tui.py:1095
 msgid "Cannot determine current desktop version."
 msgstr ""
 
-#: vajo_gui.py:1546 vajo_tui.py:1103
+#: vajo_gui.py:1586 vajo_tui.py:1104
 msgid "No previous version available to roll back to."
 msgstr ""
 
-#: vajo_gui.py:1558 vajo_tui.py:1058
+#: vajo_gui.py:1598 vajo_tui.py:1058
 msgid "Select rollback target"
 msgstr ""
 
-#: vajo_gui.py:1564
+#: vajo_gui.py:1604
 msgid "Cancel"
 msgstr ""
 
-#: vajo_gui.py:1576
-msgid "Choose a version to roll back to:"
+#: vajo_gui.py:1618
+msgid ""
+"<b>Choose a version to roll back to:</b>\n"
+"\n"
+"Rolling back will downgrade all system packages to the selected snapshot and "
+"<b>lock the system to that point in time</b>. While pinned:\n"
+"  • Repository syncs and upgrades are disabled\n"
+"  • Package installs still work against the pinned snapshot\n"
+"\n"
+"You can unpin later via the same menu to resume normal updates."
 msgstr ""
 
-#: vajo_gui.py:1592
+#: vajo_gui.py:1641
 msgid "Date"
 msgstr ""
 
-#: vajo_gui.py:1592
+#: vajo_gui.py:1641
 msgid "Desktop"
 msgstr ""
 
-#: vajo_gui.py:1592
+#: vajo_gui.py:1641
 msgid "Community"
 msgstr ""
 
-#: vajo_gui.py:1623
+#: vajo_gui.py:1672
 msgid "Roll back to {}?"
 msgstr ""
 
-#: vajo_gui.py:1625
+#: vajo_gui.py:1674
 msgid ""
 "This will revert your system to:\n"
 "\n"
 "  Desktop:   {}\n"
 "  Community: {}\n"
 "\n"
-"A full system downgrade will be performed.\n"
+"A full system downgrade will be performed and the system\n"
+"will be pinned to this snapshot. Updates will be disabled\n"
+"until you manually unpin via the Roll back menu.\n"
+"\n"
 "Are you sure you want to continue?"
 msgstr ""
 
-#: vajo_gui.py:1641 vajo_tui.py:1129
+#: vajo_gui.py:1692 vajo_tui.py:1132
 msgid "Rolling back..."
 msgstr ""
 
-#: vajo_gui.py:1669 vajo_tui.py:1138 modules/rollback.py:642
+#: vajo_gui.py:1720 vajo_tui.py:1141 modules/rollback.py:642
 msgid "Rollback completed successfully"
 msgstr ""
 
-#: vajo_tui.py:294 vajo_tui.py:1018 vajo_tui.py:1082 vajo_tui.py:1103
+#: vajo_tui.py:294 vajo_tui.py:1018 vajo_tui.py:1083 vajo_tui.py:1104
 msgid "Info"
 msgstr ""
 
@@ -597,109 +616,132 @@ msgstr ""
 msgid "Luet cache cleanup finished with errors."
 msgstr ""
 
-#: vajo_tui.py:1063
+#: vajo_tui.py:1059
+msgid ""
+"System will be pinned after rollback — upgrades disabled until unpinned."
+msgstr ""
+
+#: vajo_tui.py:1064
 msgid "↑↓ select   Enter confirm   Esc cancel"
 msgstr ""
 
-#: vajo_tui.py:1082
+#: vajo_tui.py:1083
 msgid "Roll back is only available on stable repositories."
 msgstr ""
 
-#: vajo_tui.py:1094
+#: vajo_tui.py:1095
 msgid "Error"
 msgstr ""
 
-#: vajo_tui.py:1116
+#: vajo_tui.py:1117
 msgid ""
 "Roll back to {}?\n"
 "\n"
 "  Desktop:   {}\n"
 "  Community: {}\n"
 "\n"
-"A full system downgrade will be performed."
+"All packages will be downgraded to this snapshot.\n"
+"The system will be pinned — updates and repository syncs\n"
+"will be disabled until you unpin via the Roll back menu."
 msgstr ""
 
-#: vajo_tui.py:1251
+#: vajo_tui.py:1254
 msgid "Search core error: {}"
 msgstr ""
 
-#: vajo_tui.py:1252 vajo_tui.py:1286 vajo_core.py:863 vajo_core.py:881
+#: vajo_tui.py:1255 vajo_tui.py:1289 vajo_core.py:863 vajo_core.py:881
 msgid "Error executing the search command"
 msgstr ""
 
-#: vajo_tui.py:1285
+#: vajo_tui.py:1288
 msgid "Search result processing failed: {}"
 msgstr ""
 
-#: vajo_tui.py:1332
+#: vajo_tui.py:1335
 msgid "Error uninstalling: '{}'"
 msgstr ""
 
-#: vajo_tui.py:1363
+#: vajo_tui.py:1366
 msgid "Error installing: '{}'"
 msgstr ""
 
-#: vajo_tui.py:1399
+#: vajo_tui.py:1421
+msgid "Protection status:"
+msgstr ""
+
+#: vajo_tui.py:1423
 msgid "Details for {}/{}"
 msgstr ""
 
-#: vajo_tui.py:1430
+#: vajo_tui.py:1468
 msgid "Line {}/{}"
 msgstr ""
 
-#: vajo_tui.py:1497
+#: vajo_tui.py:1477
+msgid "remove disabled (has revdeps)"
+msgstr ""
+
+#: vajo_tui.py:1479
+msgid "remove"
+msgstr ""
+
+#: vajo_tui.py:1479
+msgid "install"
+msgstr ""
+
+#: vajo_tui.py:1550
 msgid "Required by for {}/{}"
 msgstr ""
 
-#: vajo_tui.py:1498
+#: vajo_tui.py:1551
 msgid "Loading required by list..."
 msgstr ""
 
-#: vajo_tui.py:1530
+#: vajo_tui.py:1583
 msgid "This package is not required by any other package."
 msgstr ""
 
-#: vajo_tui.py:1532 vajo_tui.py:1665
+#: vajo_tui.py:1585 vajo_tui.py:1718
 msgid "Press any key to close"
 msgstr ""
 
-#: vajo_tui.py:1551
+#: vajo_tui.py:1604
 msgid "Required by for {}/{} ({} packages)"
 msgstr ""
 
-#: vajo_tui.py:1560
+#: vajo_tui.py:1613
 msgid "Package {}/{} | Page {}/{}"
 msgstr ""
 
-#: vajo_tui.py:1569 vajo_tui.py:1699
+#: vajo_tui.py:1622 vajo_tui.py:1752
 msgid "Keys: Up/Down/PgUp/PgDn=scroll | Any other key=close"
 msgstr ""
 
-#: vajo_tui.py:1623
+#: vajo_tui.py:1676
 msgid "Files for {}/{}"
 msgstr ""
 
-#: vajo_tui.py:1624
+#: vajo_tui.py:1677
 msgid "Loading file list..."
 msgstr ""
 
-#: vajo_tui.py:1663
+#: vajo_tui.py:1716
 msgid "No files found or package not installed"
 msgstr ""
 
-#: vajo_tui.py:1681
+#: vajo_tui.py:1734
 msgid "Files for {}/{} ({} files)"
 msgstr ""
 
-#: vajo_tui.py:1690
+#: vajo_tui.py:1743
 msgid "File {}/{} | Page {}/{}"
 msgstr ""
 
-#: vajo_tui.py:1936
+#: vajo_tui.py:1989
 msgid "Starting Vajo: a Luet TUI frontend..."
 msgstr ""
 
-#: vajo_tui.py:1942
+#: vajo_tui.py:1995
 msgid "An error occurred outside of curses: {}"
 msgstr ""
 

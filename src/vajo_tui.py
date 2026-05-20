@@ -223,14 +223,11 @@ class Menu:
             win.border()
             attrs = curses.A_REVERSE
 
-            base_items = self.get_base_menu_items()[self.active_menu]
-
             for idx, it in enumerate(items):
-                base = base_items[idx] if idx < len(base_items) else it
-                is_update_repos = (self.active_menu == 0 and it == _("Update repositories"))
-                is_full_upgrade = (self.active_menu == 0 and it == _("Full system upgrade"))
-                is_cache_item = (self.active_menu == 0 and base is None)
-                is_rollback_item = (self.active_menu == 0 and base is False)
+                is_update_repos = (self.active_menu == 0 and idx == 0)
+                is_full_upgrade = (self.active_menu == 0 and idx == 1)
+                is_cache_item = (self.active_menu == 0 and idx == 3)
+                is_rollback_item = (self.active_menu == 0 and idx == 4)
                 item_attr = attrs if idx == self.selected_index else curses.A_NORMAL
 
                 if is_update_repos and self.is_pinned:
@@ -714,7 +711,7 @@ class LuetTUI:
             self.results_win.addstr(0, 2, " " + _(" Results ") + " ", dim_attr)
             
             # Updated header with upgrade symbol column
-            header = f"{_('Category'):16.16} {_('Name'):28.28} {'':2} {_('Version'):16.16} {_('Repository'):30.30} {_('Action'):8}"
+            header = f"{_('Category'):16.16} {_('Name'):28.28} {'':2} {_('Version'):16.16} {_('Repository'):20.20} {_('Action'):8}"
             self.results_win.addstr(1, 1, header[:win_w-2], header_attr)
 
             if self.selected_index < self.results_scroll_offset:
@@ -743,7 +740,7 @@ class LuetTUI:
                 version_to_display = pkg.get("version", "")
                 
                 # Updated line format with upgrade symbol
-                line = f"{pkg.get('category','')[:16]:16} {pkg.get('name','')[:28]:28} {upgrade_symbol:2} {version_to_display[:16]:16} {pkg.get('repository','')[:30]:30} {action:8}"
+                line = f"{pkg.get('category','')[:16]:16} {pkg.get('name','')[:28]:28} {upgrade_symbol:2} {version_to_display[:16]:16} {pkg.get('repository','')[:20]:20} {action:8}"
                 
                 attr = dim_attr
                 if not is_busy and self.focus == 'list' and row_idx == self.selected_index:
@@ -1046,7 +1043,7 @@ class LuetTUI:
         self.draw()
         h, w = self.stdscr.getmaxyx()
         ww = min(80, w - 4)
-        hh = min(len(candidates) + 6, h - 4)
+        hh = min(len(candidates) + 7, h - 4)
         y = max(1, (h - hh) // 2)
         x = max(1, (w - ww) // 2)
         win = curses.newwin(hh, ww, y, x)
@@ -1059,10 +1056,11 @@ class LuetTUI:
             win.border()
             try:
                 win.addstr(0, 2, f" {_('Select rollback target')} ")
+                win.addstr(1, 2, _("System will be pinned after rollback — upgrades disabled until unpinned.")[:ww - 4], curses.A_DIM)
                 for i, c in enumerate(candidates):
                     label = f"  {c.get('label',''):<18} {c.get('date','')}  {c.get('desktop','')}"
                     attr = curses.A_REVERSE if i == selected else curses.A_NORMAL
-                    win.addstr(2 + i, 1, label[:ww - 2], attr)
+                    win.addstr(3 + i, 1, label[:ww - 2], attr)
                 win.addstr(hh - 2, 2, _("↑↓ select   Enter confirm   Esc cancel")[:ww - 4])
             except Exception:
                 pass
@@ -1119,7 +1117,9 @@ class LuetTUI:
             msg = _("Roll back to {}?\n\n"
                     "  Desktop:   {}\n"
                     "  Community: {}\n\n"
-                    "A full system downgrade will be performed.").format(
+                    "All packages will be downgraded to this snapshot.\n"
+                    "The system will be pinned — updates and repository syncs\n"
+                    "will be disabled until you unpin via the Roll back menu.").format(
                 previous.get("label", ""),
                 previous.get("desktop", ""),
                 previous.get("community", "")
