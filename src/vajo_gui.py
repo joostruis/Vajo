@@ -124,6 +124,7 @@ class PackageDetailsPopup(Gtk.Window):
         self.run_command_sync = run_command_sync_func
         self.package_info = package_info
         self.on_action_callback = on_action_callback
+        self.action_triggered = False
         self.action_button = None
         self.loaded_package_files = {}
         self.all_files = []
@@ -287,6 +288,7 @@ class PackageDetailsPopup(Gtk.Window):
     def on_action_clicked(self, button):
         """Close the window and trigger the install/remove action."""
         if self.on_action_callback:
+            self.action_triggered = True
             self.on_action_callback(self.package_info)
         self.destroy()
 
@@ -1238,7 +1240,7 @@ class SearchApp(Gtk.Window):
         popup = PackageDetailsPopup(self.command_runner.run_sync, package_info, on_action_callback=self.on_details_action)
         
         popup.set_modal(True)
-        popup.connect("destroy", lambda w: self.enable_gui())
+        popup.connect("destroy", lambda w: self.enable_gui() if not w.action_triggered else None)
         popup.show_all()
         self.disable_gui()
 
