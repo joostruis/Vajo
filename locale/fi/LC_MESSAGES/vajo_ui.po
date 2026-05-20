@@ -22,7 +22,7 @@ msgid "Visit our website"
 msgstr ""
 
 #: vajo_gui.py:102
-msgid "GitHub Repository"
+msgid "Git repository"
 msgstr ""
 
 #: vajo_gui.py:123

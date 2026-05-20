@@ -161,8 +161,8 @@ class AboutInfo:
         return ["Joost Ruis"]
 
     @staticmethod
-    def get_github_repo_uri():
-        return "https://github.com/joostruis/luet_pm_gui"
+    def get_git_repo_uri():
+        return "https://codeberg.org/MocaccinoOS/Vajo"
         
     @staticmethod
     def get_ncurses_about_text():

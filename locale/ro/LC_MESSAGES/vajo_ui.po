@@ -24,7 +24,8 @@ msgid "Visit our website"
 msgstr "Vizitați site-ul nostru web"
 
 #: vajo_gui.py:102
-msgid "GitHub Repository"
+#, fuzzy
+msgid "Git repository"
 msgstr "Depozit GitHub"
 
 #: vajo_gui.py:123

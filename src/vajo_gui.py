@@ -98,8 +98,8 @@ class AboutDialog(Gtk.AboutDialog):
             pass
 
         github_link = Gtk.LinkButton.new_with_label(
-            uri=AboutInfo.get_github_repo_uri(),
-            label=_("GitHub Repository")
+            uri=AboutInfo.get_git_repo_uri(),
+            label=_("Git repository")
         )
 
         box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
