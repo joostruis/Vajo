@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import contextlib
 import os
 import sys
 import json
@@ -26,7 +27,6 @@ class Debug:
     @staticmethod
     def timer(label):
         """Returns a context manager that logs elapsed time for a block."""
-        import contextlib
         @contextlib.contextmanager
         def _timer():
             t0 = time.time()
