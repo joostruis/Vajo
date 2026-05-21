@@ -138,19 +138,34 @@ class Scheduler:
 
 # --- Menu Class for State and Drawing ---
 class Menu:
-    
+
+    # Static data — translated once per process, never changes
+    _BASE_ITEMS = None
+    _TITLES = None
+
     @staticmethod
-    def get_menu_titles():
-        """Get translated menu titles."""
+    def _build_titles():
         return [(_("File"), 0), (_("Help"), 1)]
-    
+
     @staticmethod
-    def get_base_menu_items():
-        """Get base menu items with placeholders: None=cache, False=rollback."""
+    def _build_base_items():
+        """Base menu items with sentinels: None=cache placeholder, False=rollback placeholder."""
         return [
             [_("Update repositories"), _("Full system upgrade"), _("Installed packages"), _("Check system"), None, False, _("Quit")],
             [_("Documentation"), _("About")]
         ]
+
+    @classmethod
+    def get_menu_titles(cls):
+        if cls._TITLES is None:
+            cls._TITLES = cls._build_titles()
+        return cls._TITLES
+
+    @classmethod
+    def get_base_menu_items(cls):
+        if cls._BASE_ITEMS is None:
+            cls._BASE_ITEMS = cls._build_base_items()
+        return cls._BASE_ITEMS
 
     def __init__(self, tui_app):
         self.app = tui_app
@@ -161,39 +176,47 @@ class Menu:
         self.cache_enabled = False
         self.rollback_enabled = False
         self.is_pinned = False
-        self.update_cache_menu_item()
-        self.update_rollback_menu_item()
         self._dropdown_box = None
         self._dropdown_item_rows = []
+        # Resolved item lists — rebuilt only when state changes
+        self._menu_items = None
+        self.update_cache_menu_item()
+        self.update_rollback_menu_item()
+
+    def _invalidate_items(self):
+        """Mark the cached item list stale so it is rebuilt on next access."""
+        self._menu_items = None
 
     def update_cache_menu_item(self):
         """Update the cache menu item with current cache info."""
         cache_info = CacheCleaner.get_cache_info()
         self.cache_menu_label = cache_info['menu_label']
         self.cache_enabled = cache_info['has_cache']
+        self._invalidate_items()
 
     def update_rollback_menu_item(self):
         """Update rollback/pinned state."""
         self.rollback_enabled = RollbackManager.is_stable_system()
         self.is_pinned = RollbackManager.is_pinned()
+        self._invalidate_items()
 
     def get_menu_items(self):
-        """Get the current menu items with updated cache and rollback labels."""
+        """Return resolved menu items, rebuilding only when state has changed."""
+        if self._menu_items is not None:
+            return self._menu_items
         items = []
-        for menu_idx, base_items in enumerate(self.get_base_menu_items()):
+        for base_items in self.get_base_menu_items():
             menu = []
             for item in base_items:
                 if item is None:
                     menu.append(self.cache_menu_label)
                 elif item is False:
-                    if self.is_pinned:
-                        menu.append(_("View pinned state"))
-                    else:
-                        menu.append(_("Roll back"))
+                    menu.append(_("View pinned state") if self.is_pinned else _("Roll back"))
                 else:
                     menu.append(item)
             items.append(menu)
-        return items
+        self._menu_items = items
+        return self._menu_items
 
     def draw(self, stdscr):
         """Draws the currently active dropdown menu."""
