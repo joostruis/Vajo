@@ -23,8 +23,6 @@ import signal
 # -------------------------
 # Version-Agnostic Core Discovery
 # -------------------------
-# Version-Agnostic Core Discovery
-# -------------------------
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 SHARED_LIB_PATH = "/usr/share/vajo"
 
