@@ -231,7 +231,6 @@ class PackageDetailsPopup(Gtk.Window):
 
         if installed:
             main_box.pack_start(self.required_by_expander, False, False, 0)
-            self.load_required_by_info()
 
         self.package_files_expander = Gtk.Expander(label=_("Package files"))
         self.files_search_entry = Gtk.Entry()
@@ -284,6 +283,10 @@ class PackageDetailsPopup(Gtk.Window):
         self.set_resizable(True)
         self.show_all()
 
+        # Start revdep check after action_button is created and window is shown
+        if installed:
+            self.load_required_by_info()
+
     
     def on_action_clicked(self, button):
         """Close the window and trigger the install/remove action."""
@@ -326,26 +329,37 @@ class PackageDetailsPopup(Gtk.Window):
     def load_required_by_info(self):
         category = self.package_info.get("category", "")
         name = self.package_info.get("name", "")
-        # The 'args' parameter must be a tuple
+        # Disable the Remove button immediately while the revdep check runs,
+        # so it's never briefly active when it shouldn't be.
+        if self.action_button and self.package_info.get("installed", False):
+            self.action_button.set_sensitive(False)
+            self.action_button.set_tooltip_text(_("Checking dependencies..."))
         threading.Thread(target=self.retrieve_required_by_info, args=(category, name), daemon=True).start()
 
     def retrieve_required_by_info(self, category, name):
         required_by_info = self.get_required_by_info(category, name)
         if required_by_info is None:
             GLib.idle_add(self.update_textview, self.required_by_textview, _("Error retrieving required by information."))
+            # Re-enable on error so the user can still attempt removal
+            if self.action_button:
+                GLib.idle_add(self.action_button.set_sensitive, True)
+                GLib.idle_add(self.action_button.set_tooltip_text, "")
             return
         sorted_required_by = sorted(required_by_info)
         count = len(sorted_required_by)
         GLib.idle_add(self.update_expander_label, self.required_by_expander, count)
         if sorted_required_by:
             GLib.idle_add(self.update_textview, self.required_by_textview, "\n".join(sorted_required_by))
-            # Disable Remove button if package has revdeps — removal would fail
-            if self.package_info.get("installed", False) and self.action_button:
-                GLib.idle_add(self.action_button.set_sensitive, False)
+            # Keep button disabled — removal would break dependents
+            if self.action_button:
                 GLib.idle_add(self.action_button.set_tooltip_text,
                               _("Cannot remove: other packages depend on this one"))
         else:
             GLib.idle_add(self.update_textview, self.required_by_textview, _("There are no packages installed that require this package."))
+            # No revdeps — safe to remove, re-enable the button
+            if self.action_button:
+                GLib.idle_add(self.action_button.set_sensitive, True)
+                GLib.idle_add(self.action_button.set_tooltip_text, "")
 
     def load_package_files_info(self, *args):
         category = self.package_info.get("category", "")
