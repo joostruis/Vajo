@@ -1060,8 +1060,9 @@ class SyncInfo:
                 ts = ts[:-1]
             try:
                 return datetime.datetime.fromisoformat(ts)
-            except Exception:
-                return datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
+            except ValueError:
+                pass
+            return datetime.datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S")
         except Exception:
             return None
 
