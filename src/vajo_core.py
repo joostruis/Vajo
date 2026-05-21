@@ -608,11 +608,24 @@ class SystemUpgrader:
             self.post_action_callback()
 
 class CacheCleaner:
+    _CACHE_PATH = "/var/luet/db/packages/"
+    # Threshold below which we consider the cache empty (filesystem overhead)
+    _MIN_CACHE_BYTES = 4096
+
+    @staticmethod
+    def _bytes_to_human(n):
+        """Convert a byte count to a human-readable string (e.g. '1.2 GiB')."""
+        for unit in ("B", "KiB", "MiB", "GiB", "TiB"):
+            if n < 1024:
+                return f"{n:.1f} {unit}" if unit != "B" else f"{n} {unit}"
+            n /= 1024
+        return f"{n:.1f} PiB"
+
     @staticmethod
     def get_cache_size_bytes():
         try:
             res = subprocess.run(
-                ["du", "-sb", "/var/luet/db/packages/"],
+                ["du", "-sb", CacheCleaner._CACHE_PATH],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
             if res.returncode == 0:
@@ -623,37 +636,32 @@ class CacheCleaner:
 
     @staticmethod
     def get_cache_size_human(size_bytes):
-        if not size_bytes or size_bytes <= 4096:
+        """Return a human-readable size string, or None if the cache is empty."""
+        if not size_bytes or size_bytes <= CacheCleaner._MIN_CACHE_BYTES:
             return None
-        try:
-            res = subprocess.run(
-                ["du", "-hs", "/var/luet/db/packages/"],
-                stdout=subprocess.PIPE, text=True
-            )
-            if res.returncode == 0:
-                return res.stdout.split("\t", 1)[0].strip()
-        except Exception:
-            pass
-        return f"{size_bytes}B"
+        return CacheCleaner._bytes_to_human(size_bytes)
 
     @staticmethod
     def get_cache_info():
         """
         Get cache information including size and availability.
-        
-        :return: Dictionary with 'has_cache' (bool), 'size_bytes' (int or None), 
+
+        Runs a single 'du -sb' call; the human-readable size is derived in
+        Python so no second subprocess is needed.
+
+        :return: Dictionary with 'has_cache' (bool), 'size_bytes' (int or None),
                  'size_human' (str or None), and 'menu_label' (str)
         """
         size_bytes = CacheCleaner.get_cache_size_bytes()
         size_human = CacheCleaner.get_cache_size_human(size_bytes)
-        
+
         has_cache = size_human is not None
-        
+
         if has_cache:
             menu_label = _("Clear Luet cache ({})").format(size_human)
         else:
             menu_label = _("Clear Luet cache")
-        
+
         return {
             'has_cache': has_cache,
             'size_bytes': size_bytes,

@@ -366,6 +366,9 @@ class LuetTUI:
         self.cache_initialized = False  # Track cache initialization status
         self._index_ready = False
 
+        # Timestamp for periodic cache-menu refresh (matches GUI's 60s interval)
+        self._last_cache_menu_refresh = time.time()
+
         # Description index for treefs-based description search
         self.desc_index = DescriptionIndex()
 
@@ -974,6 +977,9 @@ class LuetTUI:
                 self.set_status(final_msg, error=True)
 
         def on_post_action():
+            # kbuildsycoca6 and sync-info refresh run after the upgrade command
+            # completes. Cache refresh and the final "Ready" status are handled
+            # by on_cache_ready above so we don't set "Ready" here.
             PackageOperations._run_kbuildsycoca6()
             self.init_app()
 
@@ -1968,7 +1974,13 @@ class LuetTUI:
                                 self.show_details()
                             elif ch in (ord('i'), ord('I'), ord(' ')):
                                 self.do_install_uninstall_selected()
-                                
+
+                    # Refresh the cache menu label every 60 seconds, matching the GUI.
+                    now = time.time()
+                    if now - self._last_cache_menu_refresh >= 60:
+                        self.update_cache_menu()
+                        self._last_cache_menu_refresh = now
+
                     self.draw()
             finally:
                 # Always cleanup, even on exception or signal
