@@ -511,22 +511,20 @@ class LuetTUI:
         cmd = ["sh", "-c", unpin_cmd]
 
         def on_log(line):
-            self.scheduler.schedule(self.append_to_log, line)
+            self.append_to_log(line)
 
         def on_finish(returncode):
-            def _cb():
-                if returncode == 0:
-                    self.set_status(_("Ready"))
-                    self.update_rollback_menu()
-                else:
-                    self.set_status(_("Error during unpin"), error=True)
-            self.scheduler.schedule(_cb)
+            if returncode == 0:
+                self.set_status(_("Ready"))
+                self.update_rollback_menu()
+            else:
+                self.set_status(_("Error during unpin"), error=True)
 
         self.command_runner.run_realtime(
             cmd,
             require_root=True,
-            on_line_received=lambda l: self.scheduler.schedule(on_log, l),
-            on_finished=lambda rc: self.scheduler.schedule(on_finish, rc)
+            on_line_received=on_log,
+            on_finished=on_finish
         )
 
     def append_to_log(self, text):
