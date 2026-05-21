@@ -946,6 +946,7 @@ class DescriptionIndex:
         self._index = {}  # "category/name" -> dict
         self._ready = False
         self._lock = threading.Lock()
+        self._ready_event = threading.Event()  # signalled once the index is built
 
     def build_async(self, run_sync, on_ready_callback=None):
         """
@@ -1011,6 +1012,7 @@ class DescriptionIndex:
             with self._lock:
                 self._index = index
                 self._ready = True
+            self._ready_event.set()
             if on_ready_callback:
                 on_ready_callback()
 

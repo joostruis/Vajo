@@ -1243,14 +1243,10 @@ class LuetTUI:
                 result = PackageSearcher.run_search_core(self.command_runner.run_sync, search_cmd)
                 result = SearchProcessor.process_search_results(result, installed_packages_dict)
 
-                # Merge description matches from local treefs index
-                # Wait briefly if the index is still being built (it's usually ready in ~0.2s)
+                # Merge description matches from local treefs index.
+                # Block until the index is ready, or at most 2 seconds.
                 if not self.desc_index.is_ready:
-                    import time as _time
-                    for _ in range(20):  # wait up to 2 seconds
-                        _time.sleep(0.1)
-                        if self.desc_index.is_ready:
-                            break
+                    self.desc_index._ready_event.wait(timeout=2.0)
 
                 if self.desc_index.is_ready and "error" not in result:
                     existing_keys = {
