@@ -1110,6 +1110,27 @@ class PackageDetails:
     """
 
     @staticmethod
+    def _wrap_text(text, width):
+        """
+        Word-wrap *text* to *width* characters per line.
+        Returns a list of lines. Returns ['(none)'] if text is empty.
+        """
+        if not text:
+            return [_('(none)')]
+        words = text.split()
+        lines = []
+        current = ""
+        for word in words:
+            if len(current) + len(word) + (1 if current else 0) > width:
+                lines.append(current.strip())
+                current = word + " "
+            else:
+                current += word + " "
+        if current:
+            lines.append(current.strip())
+        return lines
+
+    @staticmethod
     def get_definition_yaml(run_command_sync, repository, category, name, version):
         """Load definition.yaml content for the package via run_command_sync.
         Returns a dict or None. If repository is empty, searches all repos.
@@ -1212,67 +1233,34 @@ class PackageDetails:
         
         left_column.append(f"{installed_label:>{align_width_left}}: {installed_text}")
         
-        # --- License Wrapping Logic ---
-        wrap_width_left = 30 # Safe width for the left column's data
-        license_indent = " " * (align_width_left + 2) 
-        
-        license_lines = []
-        license_value = license_ if license_ else _('(none)')
+        # --- License Wrapping ---
+        wrap_width_left = 30
+        license_indent = " " * (align_width_left + 2)
+        license_lines = PackageDetails._wrap_text(license_, wrap_width_left)
 
-        if license_value != _('(none)'):
-            words = license_value.split()
-            current_line = ""
-            for word in words:
-                # Check if adding the word exceeds the wrap width
-                if len(current_line) + len(word) + (1 if current_line else 0) > wrap_width_left:
-                    license_lines.append(current_line.strip())
-                    current_line = word + " "
-                else:
-                    current_line += (word + " ")
-            if current_line: # Append the last line
-                license_lines.append(current_line.strip())
-        else:
-            license_lines.append(license_value)
-        
         # Add the first line with the label
         left_column.append(f"{license_label:>{align_width_left}}: {license_lines[0]}")
 
         # Add subsequent lines with indentation
         for line in license_lines[1:]:
             left_column.append(f"{license_indent}{line}")
-        # --- End License Wrapping Logic ---
 
         # RIGHT Column: Labels now use dynamically calculated align_width_right
         if repository:
             right_column.append(f"{repo_label:>{align_width_right}}: {repository}")
-        
-        # --- Description Wrapping Logic ---
-        desc = details.get("description") or details.get("long_description") or ""
-        wrap_width_right = 33 # Width for the right column's data
-        desc_indent = " " * (align_width_right + 2) 
 
-        desc_lines = []
-        if desc:
-            words = desc.split()
-            current_line = ""
-            for word in words:
-                if len(current_line) + len(word) + (1 if current_line else 0) > wrap_width_right:
-                    desc_lines.append(current_line.strip())
-                    current_line = word + " "
-                else:
-                    current_line += (word + " ")
-            if current_line:
-                desc_lines.append(current_line.strip())
-        else:
-            desc_lines.append(_('(none)'))
-        
+        # --- Description Wrapping ---
+        desc = details.get("description") or details.get("long_description") or ""
+        wrap_width_right = 33
+        desc_indent = " " * (align_width_right + 2)
+        desc_lines = PackageDetails._wrap_text(desc, wrap_width_right)
+
         # Add the first line with the label
         right_column.append(f"{desc_label:>{align_width_right}}: {desc_lines[0]}")
 
         # Add subsequent lines with indentation
         for line in desc_lines[1:]:
             right_column.append(f"{desc_indent}{line}")
-        # --- End Description Wrapping Logic ---
         
         right_column.append(f"{homepage_label:>{align_width_right}}: {uri if uri else _('(none)')}")
         
