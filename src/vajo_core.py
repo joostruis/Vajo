@@ -49,6 +49,7 @@ if _CORE_DIR not in sys.path:
     sys.path.insert(0, _CORE_DIR)
 
 from modules.i18n import _, ngettext
+from modules.rollback import RollbackManager
 
 # -------------------------
 # PackageState Class
@@ -1051,7 +1052,6 @@ class DescriptionIndex:
             return results
 
 
-from modules.rollback import RollbackManager
 class SyncInfo:
     @staticmethod
     def parse_timestamp(ts):
