@@ -309,54 +309,39 @@ class PackageFilter:
 
 
     @staticmethod
-    def get_protected_packages():
-        return PackageFilter._PROTECTED_PKGS
-    
-    @staticmethod
-    def get_hidden_packages():
-        return PackageFilter._HIDDEN_PKGS
-    
-    @staticmethod
     def is_package_hidden(category, name):
         """
         Check if a package should be hidden from the search results.
-        
+
         :param category: Package category
         :param name: Package name
         :return: True if package should be hidden, False otherwise
         """
         if category in ("entity", "buildbase", "layerbase", "acct-group", "acct-user"):
             return True
-        
-        key = "{}/{}".format(category, name)
-        hidden_packages = PackageFilter.get_hidden_packages()
-        return key in hidden_packages
-    
+        return "{}/{}".format(category, name) in PackageFilter._HIDDEN_PKGS
+
     @staticmethod
     def is_package_protected(category, name):
         """
         Check if a package is protected from removal.
-        
+
         :param category: Package category
         :param name: Package name
         :return: True if package is protected, False otherwise
         """
-        key = "{}/{}".format(category, name)
-        protected_packages = PackageFilter.get_protected_packages()
-        return key in protected_packages
-    
+        return "{}/{}".format(category, name) in PackageFilter._PROTECTED_PKGS
+
     @staticmethod
     def get_protection_message(category, name):
         """
         Get the protection message for a protected package.
-        
+
         :param category: Package category
         :param name: Package name
         :return: Protection message or None if not protected
         """
-        key = "{}/{}".format(category, name)
-        protected_packages = PackageFilter.get_protected_packages()
-        return protected_packages.get(key)
+        return PackageFilter._PROTECTED_PKGS.get("{}/{}".format(category, name))
 
 
 # -------------------------
