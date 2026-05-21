@@ -6,6 +6,7 @@ Implements a full TUI interface with a functional menu, thread-safe command exec
 and robust package listing and log viewing, with full translation support via _() and ngettext.
 """
 
+import collections
 import curses
 import curses.textpad
 import curses.ascii
@@ -325,7 +326,7 @@ class LuetTUI:
         self.results = []
         self.selected_index = 0
         self.results_scroll_offset = 0
-        self.log_lines = []
+        self.log_lines = collections.deque(maxlen=2000)
         self.log_scroll = 0
         self.log_visible = False
 
@@ -533,8 +534,6 @@ class LuetTUI:
         with self.lock:
             for ln in str(text).splitlines():
                 self.log_lines.append(ln)
-            if len(self.log_lines) > 2000:
-                self.log_lines = self.log_lines[-2000:]
             self.log_scroll = 0
 
     def set_status(self, msg, error=False):
@@ -777,7 +776,7 @@ class LuetTUI:
                     start_idx = len(self.log_lines) - (self.log_scroll + self.visible_log_height_lines)
                     start_idx = max(0, start_idx)
 
-                visible_log = self.log_lines[start_idx : start_idx + self.visible_log_height_lines]
+                visible_log = list(self.log_lines)[start_idx : start_idx + self.visible_log_height_lines]
                 
                 for i in range(self.visible_log_height_lines):
                     y_in_win = 1 + i
