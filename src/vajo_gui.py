@@ -1049,7 +1049,8 @@ class SearchApp(Gtk.Window):
                 "version": self.liststore.get_value(iter_, 3),
                 "repository": self.liststore.get_value(iter_, 4),
                 # Determine 'installed' status based on the safe integer ID
-                "installed": action_id_for_details in [self.ACTION_REMOVE, self.ACTION_PROTECTED]
+                "installed": action_id_for_details in [self.ACTION_REMOVE, self.ACTION_PROTECTED],
+                "protected": action_id_for_details == self.ACTION_PROTECTED,
             }
             self.show_package_details_popup(package_info)
             return True
