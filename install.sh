@@ -24,9 +24,9 @@ chown root:root $PACKAGE_DIR/etc/polkit-1/rules.d/99-luet.rules
 
 # Install translations
 for lang in $(ls locale 2>/dev/null); do
-    if [ -f "locale/$lang/LC_MESSAGES/luet_pm_ui.mo" ]; then
-        install -Dm644 "locale/$lang/LC_MESSAGES/luet_pm_ui.mo" \
-            "$PACKAGE_DIR/usr/share/locale/$lang/LC_MESSAGES/luet_pm_ui.mo"
+    if [ -f "locale/$lang/LC_MESSAGES/vajo_ui.mo" ]; then
+        install -Dm644 "locale/$lang/LC_MESSAGES/vajo_ui.mo" \
+            "$PACKAGE_DIR/usr/share/locale/$lang/LC_MESSAGES/vajo_ui.mo"
     fi
 done
 

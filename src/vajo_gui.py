@@ -45,8 +45,8 @@ def setup_signal_handlers(app):
 
 locale.setlocale(locale.LC_ALL, '')
 localedir = '/usr/share/locale'
-gettext.bindtextdomain('luet_pm_ui', localedir)
-gettext.textdomain('luet_pm_ui')
+gettext.bindtextdomain('vajo_ui', localedir)
+gettext.textdomain('vajo_ui')
 _ = gettext.gettext
 ngettext = gettext.ngettext
 
