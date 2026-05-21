@@ -945,16 +945,33 @@ class LuetTUI:
         
         def on_finish(returncode, message):
             if returncode == 0:
-                # 1. Refresh installed packages cache
-                self.refresh_installed_packages_cache()
-                
-                # 2. FIX: If we have an active search, re-run it to update symbols
-                if self.search_query == _("installed"):
-                    self.run_show_installed_packages()
-                elif self.search_query:
-                    self.run_search(self.search_query)
+                self.set_status(_("Finalizing: Updating package cache..."))
 
-                self.set_status(_("System upgrade completed successfully"))
+                # Refresh the cache asynchronously so the UI stays responsive.
+                # on_cache_ready is the single place that finalizes status so
+                # "Ready" is set exactly once, after everything is done.
+                def on_cache_ready(new_cache):
+                    with self.cache_lock:
+                        self.installed_packages_cache = new_cache
+                        self.cache_initialized = True
+
+                    if self.search_query == _("installed"):
+                        self.run_show_installed_packages()
+                    elif self.search_query:
+                        self.run_search(self.search_query)
+
+                    if not self.is_error_status:
+                        self.set_status(_("Ready"))
+
+                def cache_worker():
+                    try:
+                        new_cache = PackageState.get_installed_packages(self.command_runner.run_sync)
+                    except Exception as e:
+                        print(f"Error refreshing cache after upgrade: {e}")
+                        new_cache = {}
+                    self.scheduler.schedule(on_cache_ready, new_cache)
+
+                threading.Thread(target=cache_worker, daemon=True).start()
             else:
                 final_msg = message if returncode != 0 else _("Error during system upgrade")
                 self.set_status(final_msg, error=True)
@@ -962,9 +979,6 @@ class LuetTUI:
         def on_post_action():
             PackageOperations._run_kbuildsycoca6()
             self.init_app()
-            # Only set to Ready if no error occurred
-            if not self.is_error_status:
-                self.set_status(_("Ready"))
 
         def start_worker():
             try:
