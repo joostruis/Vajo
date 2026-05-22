@@ -319,6 +319,8 @@ class PackageFilter:
         """
         if category in ("entity", "buildbase", "layerbase", "acct-group", "acct-user"):
             return True
+        if category == "layers" and name.startswith("firmware"):
+            return True
         return "{}/{}".format(category, name) in PackageFilter._HIDDEN_PKGS
 
     @staticmethod
