@@ -159,7 +159,12 @@ def _parse_appstream_file(path: str) -> list:
                 name    = _text_default(elem, "name")
                 summary = _text_default(elem, "summary")
                 project_license = _text_default(elem, "project_license")
-
+                homepage = ""
+                for child in elem:
+                    local = child.tag.split("}")[-1] if "}" in child.tag else child.tag
+                    if local == "url" and child.get("type") == "homepage" and child.text:
+                        homepage = child.text.strip()
+                        break
                 # Version: try releases/release/@version first
                 version = ""
                 releases = elem.find("releases")
@@ -179,6 +184,7 @@ def _parse_appstream_file(path: str) -> list:
                         "summary": summary,
                         "version": version,
                         "license": project_license,
+                        "homepage": homepage,
                     })
 
                 elem.clear()   # free memory as we go
@@ -376,6 +382,7 @@ class AppstreamIndex:
             # ---- extra fields ----
             "description":           entry.get("summary", ""),
             "license":               entry.get("license", ""),
+            "homepage":              entry.get("homepage", ""),
             "_flatpak_label":        entry["name"],
             "_flatpak":              True,
         }

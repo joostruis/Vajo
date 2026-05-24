@@ -263,13 +263,16 @@ class PackageDetailsPopup(Gtk.Window):
             # --- Flatpak details: use appstream data, no luet API calls ---
             next_right_row = 0
 
-            # Flathub homepage link
-            flathub_url = "https://flathub.org/apps/{}".format(name)
+            # Project homepage link with Flathub fallback
+            homepage_url = package_info.get("homepage", "")
+            if not homepage_url:
+                homepage_url = "https://flathub.org/apps/{}".format(name)
             uri_label = Gtk.Label()
-            escaped_url = GLib.markup_escape_text(flathub_url)
+            escaped_url = GLib.markup_escape_text(homepage_url)
             uri_label.set_markup('<a href="{}">{}</a>'.format(escaped_url, escaped_url))
             uri_label.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
-            uri_label.connect("button-press-event", lambda w, e: webbrowser.open(flathub_url))
+            # Make sure we pass the dynamic URL to the lambda function!
+            uri_label.connect("button-press-event", lambda w, e, url=homepage_url: webbrowser.open(url))
             uri_label.connect("enter-notify-event", self.on_hover_cursor)
             uri_label.connect("leave-notify-event", self.on_leave_cursor)
             add_left(3, "Homepage:", uri_label, top_align=True)
@@ -1274,6 +1277,7 @@ class SearchApp(Gtk.Window):
                         entry = self.appstream_index._index.get(app_id, {})
                         package_info["description"] = entry.get("summary", "")
                         package_info["license"] = entry.get("license", "")
+                        package_info["homepage"] = entry.get("homepage", "")
                 else:
                     package_info["description"] = ""
             else:

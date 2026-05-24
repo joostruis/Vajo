@@ -1441,6 +1441,7 @@ class LuetTUI:
                     "_flatpak_label": pkg.get('_flatpak_label', ""),
                     "description": pkg.get('description', ""),
                     "license": pkg.get('license', ""),
+                    "homepage": pkg.get('homepage', ""),
                 })
             self.selected_index = 0
             self.results_scroll_offset = 0
@@ -1619,7 +1620,11 @@ class LuetTUI:
                 lines.append("")
                 lines.append(_("Description: {}").format(description))
             lines.append("")
-            lines.append(_("Flathub:     https://flathub.org/apps/{}").format(name))
+            pkg_homepage = pkg.get("homepage", "")
+            if pkg_homepage:
+                lines.append(_("Homepage:    {}").format(pkg_homepage))
+            else:
+                lines.append(_("Flathub:     https://flathub.org/apps/{}").format(name))
             text = "\n".join(lines)
             title = _("Details for {}").format(display_label)
             self.show_package_details_interactive(title, text, category, name, installed, pkg)
