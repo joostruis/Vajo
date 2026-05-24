@@ -389,6 +389,12 @@ class FlatpakBackend:
     """
 
     @staticmethod
+    def is_available() -> bool:
+        """Return True if the `flatpak` binary can be found on PATH."""
+        import shutil
+        return shutil.which("flatpak") is not None
+
+    @staticmethod
     def merge(luet_result: dict, flatpak_result: dict) -> dict:
         """
         Merge flatpak_result into luet_result, returning a combined dict.

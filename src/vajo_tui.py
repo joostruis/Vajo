@@ -74,6 +74,11 @@ except ImportError:
     FlatpakOperations = None
     AppstreamIndex = None
 
+try:
+    from modules.config import VajoConfig
+except ImportError:
+    VajoConfig = None
+
 # Import packaging for version comparison
 try:
     from packaging import version as pkg_version
@@ -152,13 +157,14 @@ class Menu:
 
     @staticmethod
     def _build_titles():
-        return [(_("File"), 0), (_("Help"), 1)]
+        return [(_("File"), 0), (_("Edit"), 1), (_("Help"), 2)]
 
     @staticmethod
     def _build_base_items():
         """Base menu items with sentinels: None=cache placeholder, False=rollback placeholder."""
         return [
             [_("Update repositories"), _("Full system upgrade"), _("Installed packages"), _("Check system"), None, False, _("Quit")],
+            [_("Preferences")],
             [_("Documentation"), _("About")]
         ]
 
@@ -201,9 +207,11 @@ class Menu:
         self.cache_enabled = cache_info['has_cache']
         self._invalidate_items()
 
-    def update_rollback_menu_item(self):
-        """Update rollback/pinned state."""
-        self.rollback_enabled = RollbackManager.is_stable_system()
+    def update_rollback_menu_item(self, config=None):
+        """Update rollback/pinned state, gated on user config."""
+        stable = RollbackManager.is_stable_system()
+        config_allows = config.get("enable_rollback", False) if config else False
+        self.rollback_enabled = stable and config_allows
         self.is_pinned = RollbackManager.is_pinned()
         self._invalidate_items()
 
@@ -324,6 +332,8 @@ class Menu:
                 self.app.run_rollback()
         elif item == _("View pinned state"):
             self.app.run_view_pinned_state()
+        elif item == _("Preferences"):
+            self.app.run_preferences()
         elif item == _("Documentation"):
             self.app.show_message(_("Info"), _("Opening luet documentation (URL TBD)"))
         elif item == _("About"):
@@ -402,8 +412,12 @@ class LuetTUI:
         # Description index for treefs-based description search
         self.desc_index = DescriptionIndex()
 
-        # Appstream index for Flatpak search (only built when --flatpak is active)
-        self.appstream_index = AppstreamIndex() if (FLATPAK_ENABLED and AppstreamIndex) else None
+        # Load user config first — it gates flatpak and rollback
+        self.config = VajoConfig() if VajoConfig else None
+
+        # Flatpak enabled if --flatpak flag OR config says so
+        flatpak_on = FLATPAK_ENABLED or (self.config.get("enable_flatpak", False) if self.config else False)
+        self.appstream_index = AppstreamIndex() if (flatpak_on and AppstreamIndex) else None
 
         self.init_app()
 
@@ -511,7 +525,7 @@ class LuetTUI:
 
     def update_rollback_menu(self):
         """Update the rollback/pinned menu item state."""
-        self.menu.update_rollback_menu_item()
+        self.menu.update_rollback_menu_item(self.config)
 
     def run_view_pinned_state(self):
         version = RollbackManager.get_current_desktop_version() or _("unknown")
@@ -1074,6 +1088,70 @@ class LuetTUI:
             _
         )
         
+    def run_preferences(self):
+        """Show preferences as a simple curses form."""
+        if not self.config:
+            self.show_message(_("Preferences"), _("Config module not available."))
+            return
+
+        flatpak_available  = FlatpakBackend.is_available() if FlatpakBackend else False
+        rollback_available = RollbackManager.is_stable_system()
+
+        # (config_key, label, available)
+        options = [
+            ("enable_flatpak",  _("Enable Flatpak support (Flathub)"), flatpak_available),
+            ("enable_rollback", _("Enable Rollback support"),           rollback_available),
+        ]
+        selected = 0
+
+        while True:
+            h, w = self.stdscr.getmaxyx()
+            box_h = len(options) + 7
+            box_w = min(64, w - 4)
+            by = max(0, (h - box_h) // 2)
+            bx = max(0, (w - box_w) // 2)
+
+            win = curses.newwin(box_h, box_w, by, bx)
+            win.keypad(True)
+            win.border()
+            title = _(" Preferences ")
+            win.addstr(0, max(1, (box_w - len(title)) // 2), title)
+            win.addstr(box_h - 2, 2, _("Space=toggle  Enter/Esc=close"))
+
+            for i, (key, label, available) in enumerate(options):
+                value = self.config.get(key, False) and available
+                checkbox = "[x]" if value else "[ ]"
+                if i == selected:
+                    attr = curses.A_REVERSE
+                elif not available:
+                    attr = curses.A_DIM
+                else:
+                    attr = curses.A_NORMAL
+                line = "{} {}{}".format(
+                    checkbox, label,
+                    _(" (unavailable)") if not available else ""
+                )
+                win.addstr(2 + i, 2, line[:box_w - 4], attr)
+
+            win.addstr(2 + len(options) + 1, 2,
+                       _("Changes take effect after restarting Vajo.")[:box_w - 4])
+
+            win.refresh()
+            ch = win.getch()
+
+            if ch in (curses.KEY_UP, ord('k')):
+                selected = max(0, selected - 1)
+            elif ch in (curses.KEY_DOWN, ord('j')):
+                selected = min(len(options) - 1, selected + 1)
+            elif ch == ord(' '):
+                key, _label, available = options[selected]
+                if available:
+                    self.config.set(key, not self.config.get(key, False))
+            elif ch in (27, ord('q'), 10, 13):
+                break
+
+        self.draw()
+
     def run_clear_cache(self):
         if not self.menu.cache_enabled:
             self.show_message(_("Info"), _("No cache to clear"))
@@ -1256,7 +1334,7 @@ class LuetTUI:
         packages.sort(key=lambda p: (p["category"], p["name"]))
 
         # Append installed Flatpak packages when --flatpak is active
-        if FLATPAK_ENABLED and self.appstream_index is not None:
+        if self.appstream_index is not None:
             with self.appstream_index._lock:
                 installed_ids = set(self.appstream_index._installed_ids)
                 index = dict(self.appstream_index._index)
@@ -1328,7 +1406,7 @@ class LuetTUI:
                         result["packages"].append(enriched)
 
                 # Merge Flatpak results when --flatpak flag is active
-                if FLATPAK_ENABLED and self.appstream_index is not None:
+                if self.appstream_index is not None:
                     if not self.appstream_index.is_ready:
                         self.appstream_index._ready_event.wait(timeout=3.0)
                     flatpak_packages = self.appstream_index.search(sanitized_query)
