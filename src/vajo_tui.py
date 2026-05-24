@@ -1440,6 +1440,7 @@ class LuetTUI:
                     "_flatpak": pkg.get('_flatpak', False),
                     "_flatpak_label": pkg.get('_flatpak_label', ""),
                     "description": pkg.get('description', ""),
+                    "license": pkg.get('license', ""),
                 })
             self.selected_index = 0
             self.results_scroll_offset = 0
@@ -1610,6 +1611,9 @@ class LuetTUI:
             lines.append(_("Version:     {}").format(version_to_use))
             lines.append(_("Installed:   {}").format(_("Yes") if installed else _("No")))
             lines.append(_("Repository:  {}").format(repository))
+            pkg_license = pkg.get("license", "")
+            if pkg_license:
+                lines.append(_("License:     {}").format(pkg_license))
             description = pkg.get('description', '')
             if description:
                 lines.append("")

@@ -158,6 +158,7 @@ def _parse_appstream_file(path: str) -> list:
                 app_id  = _text_default(elem, "id")
                 name    = _text_default(elem, "name")
                 summary = _text_default(elem, "summary")
+                project_license = _text_default(elem, "project_license")
 
                 # Version: try releases/release/@version first
                 version = ""
@@ -177,6 +178,7 @@ def _parse_appstream_file(path: str) -> list:
                         "name":    name,
                         "summary": summary,
                         "version": version,
+                        "license": project_license,
                     })
 
                 elem.clear()   # free memory as we go
@@ -373,6 +375,7 @@ class AppstreamIndex:
             "protected":             False,
             # ---- extra fields ----
             "description":           entry.get("summary", ""),
+            "license":               entry.get("license", ""),
             "_flatpak_label":        entry["name"],
             "_flatpak":              True,
         }

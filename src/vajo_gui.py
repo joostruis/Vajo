@@ -287,6 +287,17 @@ class PackageDetailsPopup(Gtk.Window):
                 desc_label.set_xalign(0)
                 desc_label.set_max_width_chars(40)
                 add_right(next_right_row, _("Description:"), desc_label)
+                next_right_row += 1
+                
+            license_ = package_info.get("license", "")
+            if license_:
+                lic_label = Gtk.Label(label=license_)
+                lic_label.set_xalign(0)
+                lic_label.set_line_wrap(True)
+                lic_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+                lic_label.set_max_width_chars(40)
+                add_right(next_right_row, _("License:"), lic_label)
+                next_right_row += 1
 
         else:
             # --- Luet details: load definition.yaml as before ---
@@ -1262,6 +1273,7 @@ class SearchApp(Gtk.Window):
                         package_info["installed"] = app_id in self.appstream_index._installed_ids
                         entry = self.appstream_index._index.get(app_id, {})
                         package_info["description"] = entry.get("summary", "")
+                        package_info["license"] = entry.get("license", "")
                 else:
                     package_info["description"] = ""
             else:
