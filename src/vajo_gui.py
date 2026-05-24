@@ -77,15 +77,6 @@ except ImportError as e:
     print(f"Error: {e}")
     sys.exit(1)
 
-try:
-    from modules.flatpak import FlatpakBackend, FlatpakOperations, AppstreamIndex, FLATPAK_ENABLED, ACTION_FLATPAK_READONLY
-except ImportError:
-    FLATPAK_ENABLED = False
-    ACTION_FLATPAK_READONLY = 3
-    FlatpakBackend = None
-    FlatpakOperations = None
-    AppstreamIndex = None
-
 # -------------------------
 # About dialog
 # -------------------------
@@ -144,9 +135,6 @@ class PackageDetailsPopup(Gtk.Window):
         repository = package_info.get("repository", "")
         installed = package_info.get("installed", False)
         protected = package_info.get("protected", False)
-        is_flatpak = package_info.get("_flatpak", False)
-        # For flatpak: human-readable name for display, app-id kept in name for commands
-        display_name = package_info.get("_flatpak_display", name) if is_flatpak else name
 
         main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         main_box.set_margin_start(10)
@@ -171,7 +159,7 @@ class PackageDetailsPopup(Gtk.Window):
             left_grid.attach(label, 0, row, 1, 1)
             left_grid.attach(widget, 1, row, 1, 1)
 
-        add_left(0, _("Package:"), Gtk.Label(label="{}/{}".format(category, display_name)))
+        add_left(0, _("Package:"), Gtk.Label(label="{}/{}".format(category, name)))
         add_left(1, _("Version:"), Gtk.Label(label=version))
         add_left(2, _("Installed:"), Gtk.Label(label=_("Yes") if installed else _("No")))
 
@@ -186,27 +174,32 @@ class PackageDetailsPopup(Gtk.Window):
             right_grid.attach(label, 0, row, 1, 1)
             right_grid.attach(widget, 1, row, 1, 1)
 
-        if is_flatpak:
-            # --- Flatpak details: use appstream data, no luet API calls ---
+        definition_data = self.load_definition_yaml(repository, category, name, version)
+        if definition_data:
+            description = definition_data.get("description", "")
+            license_ = (definition_data.get("license") or definition_data.get("licenses") or "")
+            if isinstance(license_, list):
+                license_ = ", ".join(license_)
+            uri = definition_data.get("uri") or definition_data.get("source") or ""
+            if isinstance(uri, list):
+                uri = uri[0] if uri else ""
+
+            if uri:
+                uri_label = Gtk.Label()
+                escaped_uri = GLib.markup_escape_text(uri)
+                uri_label.set_markup('<a href="{}">{}</a>'.format(escaped_uri, escaped_uri))
+                uri_label.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
+                uri_label.connect("button-press-event", lambda w, e: webbrowser.open(uri))
+                uri_label.connect("enter-notify-event", self.on_hover_cursor)
+                uri_label.connect("leave-notify-event", self.on_leave_cursor)
+                add_left(3, "Homepage:", uri_label, top_align=True)
+
             next_right_row = 0
-
-            # Flathub homepage link
-            flathub_url = "https://flathub.org/apps/{}".format(name)
-            uri_label = Gtk.Label()
-            escaped_url = GLib.markup_escape_text(flathub_url)
-            uri_label.set_markup('<a href="{}">{}</a>'.format(escaped_url, escaped_url))
-            uri_label.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
-            uri_label.connect("button-press-event", lambda w, e: webbrowser.open(flathub_url))
-            uri_label.connect("enter-notify-event", self.on_hover_cursor)
-            uri_label.connect("leave-notify-event", self.on_leave_cursor)
-            add_left(3, "Homepage:", uri_label, top_align=True)
-
-            repo_label = Gtk.Label(label=repository)
-            repo_label.set_xalign(0)
-            add_right(next_right_row, _("Repository:"), repo_label)
-            next_right_row += 1
-
-            description = package_info.get("description", "")
+            if repository:
+                repo_label = Gtk.Label(label=repository)
+                repo_label.set_xalign(0)
+                add_right(next_right_row, _("Repository:"), repo_label)
+                next_right_row += 1
             if description:
                 desc_label = Gtk.Label(label=description)
                 desc_label.set_line_wrap(True)
@@ -214,50 +207,14 @@ class PackageDetailsPopup(Gtk.Window):
                 desc_label.set_xalign(0)
                 desc_label.set_max_width_chars(40)
                 add_right(next_right_row, _("Description:"), desc_label)
-
-        else:
-            # --- Luet details: load definition.yaml as before ---
-            definition_data = self.load_definition_yaml(repository, category, name, version)
-            if definition_data:
-                description = definition_data.get("description", "")
-                license_ = (definition_data.get("license") or definition_data.get("licenses") or "")
-                if isinstance(license_, list):
-                    license_ = ", ".join(license_)
-                uri = definition_data.get("uri") or definition_data.get("source") or ""
-                if isinstance(uri, list):
-                    uri = uri[0] if uri else ""
-
-                if uri:
-                    uri_label = Gtk.Label()
-                    escaped_uri = GLib.markup_escape_text(uri)
-                    uri_label.set_markup('<a href="{}">{}</a>'.format(escaped_uri, escaped_uri))
-                    uri_label.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
-                    uri_label.connect("button-press-event", lambda w, e: webbrowser.open(uri))
-                    uri_label.connect("enter-notify-event", self.on_hover_cursor)
-                    uri_label.connect("leave-notify-event", self.on_leave_cursor)
-                    add_left(3, "Homepage:", uri_label, top_align=True)
-
-                next_right_row = 0
-                if repository:
-                    repo_label = Gtk.Label(label=repository)
-                    repo_label.set_xalign(0)
-                    add_right(next_right_row, _("Repository:"), repo_label)
-                    next_right_row += 1
-                if description:
-                    desc_label = Gtk.Label(label=description)
-                    desc_label.set_line_wrap(True)
-                    desc_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-                    desc_label.set_xalign(0)
-                    desc_label.set_max_width_chars(40)
-                    add_right(next_right_row, _("Description:"), desc_label)
-                    next_right_row += 1
-                if license_:
-                    lic_label = Gtk.Label(label=license_)
-                    lic_label.set_xalign(0)
-                    lic_label.set_line_wrap(True)
-                    lic_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-                    lic_label.set_max_width_chars(40)
-                    add_right(next_right_row, _("License:"), lic_label)
+                next_right_row += 1
+            if license_:
+                lic_label = Gtk.Label(label=license_)
+                lic_label.set_xalign(0)
+                lic_label.set_line_wrap(True)
+                lic_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+                lic_label.set_max_width_chars(40)
+                add_right(next_right_row, _("License:"), lic_label)
                 next_right_row += 1
 
         hbox.pack_start(left_grid, True, True, 0)
@@ -272,10 +229,9 @@ class PackageDetailsPopup(Gtk.Window):
         self.required_by_scrolled.add(self.required_by_textview)
         self.required_by_expander.add(self.required_by_scrolled)
 
-        if installed and not is_flatpak:
+        if installed:
             main_box.pack_start(self.required_by_expander, False, False, 0)
 
-        # Package files expander is luet-specific — hide for Flatpak entries
         self.package_files_expander = Gtk.Expander(label=_("Package files"))
         self.files_search_entry = Gtk.Entry()
         self.files_search_entry.set_placeholder_text(_("Filter files..."))
@@ -296,8 +252,7 @@ class PackageDetailsPopup(Gtk.Window):
         files_vbox.pack_start(files_sw, True, True, 0)
         self.package_files_expander.add(files_vbox)
         self.package_files_expander.connect("activate", self.load_package_files_info)
-        if not is_flatpak:
-            main_box.pack_start(self.package_files_expander, False, False, 0)
+        main_box.pack_start(self.package_files_expander, False, False, 0)
 
         scrolled = Gtk.ScrolledWindow()
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
@@ -329,7 +284,7 @@ class PackageDetailsPopup(Gtk.Window):
         self.show_all()
 
         # Start revdep check after action_button is created and window is shown
-        if installed and not is_flatpak:
+        if installed:
             self.load_required_by_info()
 
     
@@ -510,7 +465,6 @@ class SearchApp(Gtk.Window):
         self.ACTION_INSTALL = 0
         self.ACTION_REMOVE = 1
         self.ACTION_PROTECTED = 2
-        self.ACTION_FLATPAK_READONLY = ACTION_FLATPAK_READONLY  # 3
 
         if os.getuid() == 0:
             self.elevation_cmd = None
@@ -536,10 +490,6 @@ class SearchApp(Gtk.Window):
         # Description index for treefs-based description search
         self.desc_index = DescriptionIndex()
 
-        # Appstream index for Flatpak search (only built when --flatpak is active)
-        self.appstream_index = AppstreamIndex() if (FLATPAK_ENABLED and AppstreamIndex) else None
-        self._flatpak_appids = {}  # (category, display_label) -> app_id
-
         self.init_search_ui()
 
         if self.elevation_cmd is None and os.getuid() != 0:
@@ -556,11 +506,6 @@ class SearchApp(Gtk.Window):
         # Start building the description index in the background
         Debug.log("GUI: starting description index build")
         self.desc_index.build_async(self.command_runner.run_sync, on_ready_callback=self._on_index_ready)
-
-        # Start building the Flatpak appstream index in the background (no-op if disabled)
-        if self.appstream_index is not None:
-            Debug.log("GUI: starting appstream index build")
-            self.appstream_index.build_async()
     
     def refresh_installed_packages_cache_async(self):
         """Refresh the cached list of installed packages asynchronously"""
@@ -913,27 +858,6 @@ class SearchApp(Gtk.Window):
             packages.append(pkg)
 
         packages.sort(key=lambda p: (p["category"], p["name"]))
-
-        # Append installed Flatpak packages when --flatpak is active
-        if FLATPAK_ENABLED and self.appstream_index is not None:
-            with self.appstream_index._lock:
-                installed_ids = set(self.appstream_index._installed_ids)
-                index = dict(self.appstream_index._index)
-            for app_id in sorted(installed_ids):
-                entry = index.get(app_id, {})
-                packages.append({
-                    "category":              "flatpak",
-                    "name":                  app_id,
-                    "version":               entry.get("version", ""),
-                    "repository":            "Flathub",
-                    "is_actually_installed": True,
-                    "protected":             False,
-                    "upgradeable":           False,
-                    "upgrade_symbol":        "",
-                    "description":           entry.get("summary", ""),
-                    "_flatpak_label":        entry.get("name", app_id),
-                    "_flatpak":              True,
-                })
         self.last_search = _("installed")
         self.search_entry.set_text("")
         self.clear_liststore()
@@ -1012,17 +936,6 @@ class SearchApp(Gtk.Window):
                     enriched = SearchProcessor._enrich_package_info(dict(pkg), installed_packages_dict)
                     result_data["packages"].append(enriched)
 
-        # Merge Flatpak results when --flatpak flag is active and not in advanced mode
-        if FLATPAK_ENABLED and self.appstream_index is not None and not advanced:
-            query = search_command[-1] if search_command else ""
-            if self.appstream_index.is_ready:
-                flatpak_packages = self.appstream_index.search(query)
-            else:
-                # Index still building — wait briefly (it's just XML parsing, usually <1s)
-                self.appstream_index._ready_event.wait(timeout=3.0)
-                flatpak_packages = self.appstream_index.search(query)
-            result_data = FlatpakBackend.merge(result_data, {"packages": flatpak_packages})
-
         # Pass processed data to GUI thread
         GLib.idle_add(self.on_search_finished, result_data)
 
@@ -1050,9 +963,6 @@ class SearchApp(Gtk.Window):
                 if PackageFilter.is_package_protected(category, name):
                     action_id = self.ACTION_PROTECTED
                     action_display = _("Protected")
-                elif pkg.get("_flatpak", False):
-                    action_id = self.ACTION_FLATPAK_READONLY
-                    action_display = _("Remove") if installed else _("Install")
                 elif installed:
                     action_id = self.ACTION_REMOVE
                     action_display = _("Remove")
@@ -1072,13 +982,9 @@ class SearchApp(Gtk.Window):
                         desc = indexed.get("description", "")
 
                 # New ListStore fields: [Cat, Name, UpgradeSymbol, Version, Repo, ACTION_ID, ACTION_DISPLAY, Details, Highlight Color, Description]
-                # For flatpak: col 1 = display label; app-id stored in _flatpak_appids dict
-                display_name = pkg.get("_flatpak_label", name) if pkg.get("_flatpak") else name
-                if pkg.get("_flatpak"):
-                    self._flatpak_appids[("flatpak", display_name)] = name  # name = app-id
                 self.liststore.append([
                     category,                  # 0
-                    display_name,              # 1  (display name for flatpak, package name for luet)
+                    name,                      # 1
                     upgrade_symbol,            # 2
                     version_to_display,        # 3
                     pkg.get("repository", ""), # 4
@@ -1086,7 +992,7 @@ class SearchApp(Gtk.Window):
                     action_display,            # 6
                     _("Details"),              # 7
                     None,                      # 8
-                    desc,                      # 9  description / tooltip for all entries
+                    desc,                      # 9
                 ])
                 
             n = len(self.liststore)
@@ -1140,14 +1046,6 @@ class SearchApp(Gtk.Window):
             # Compare against the safe integer constants
             if action_id == self.ACTION_PROTECTED: 
                 SearchApp.show_protected_popup(self, path) 
-            elif action_id == self.ACTION_FLATPAK_READONLY:
-                display_label = self.liststore.get_value(iter_, 1)
-                app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
-                installed = app_id in (self.appstream_index._installed_ids if self.appstream_index else set())
-                if installed:
-                    self.confirm_flatpak_remove(iter_)
-                else:
-                    self.confirm_flatpak_install(iter_)
             elif action_id == self.ACTION_INSTALL: 
                 self.confirm_install(iter_)
             elif action_id == self.ACTION_REMOVE: 
@@ -1158,32 +1056,16 @@ class SearchApp(Gtk.Window):
         if details_area and details_area.x <= event.x < (details_area.x + details_area.width):
             # Read the internal integer ID for comparison (data index 5)
             action_id_for_details = self.liststore.get_value(iter_, 5)
-            is_flatpak = (action_id_for_details == self.ACTION_FLATPAK_READONLY)
-
+            
             package_info = {
                 "category": self.liststore.get_value(iter_, 0),
+                "name": self.liststore.get_value(iter_, 1),
                 "version": self.liststore.get_value(iter_, 3),
                 "repository": self.liststore.get_value(iter_, 4),
+                # Determine 'installed' status based on the safe integer ID
                 "installed": action_id_for_details in [self.ACTION_REMOVE, self.ACTION_PROTECTED],
                 "protected": action_id_for_details == self.ACTION_PROTECTED,
-                "_flatpak": is_flatpak,
             }
-            if is_flatpak:
-                # col 1 = display label; look up real app-id from dict
-                display_label = self.liststore.get_value(iter_, 1)
-                app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
-                package_info["name"] = app_id
-                package_info["_flatpak_display"] = display_label
-                if self.appstream_index is not None:
-                    with self.appstream_index._lock:
-                        package_info["installed"] = app_id in self.appstream_index._installed_ids
-                        entry = self.appstream_index._index.get(app_id, {})
-                        package_info["description"] = entry.get("summary", "")
-                else:
-                    package_info["description"] = ""
-            else:
-                package_info["name"] = self.liststore.get_value(iter_, 1)
-                package_info["description"] = ""
             self.show_package_details_popup(package_info)
             return True
             
@@ -1341,131 +1223,17 @@ class SearchApp(Gtk.Window):
             print("Exception launching uninstallation thread:", e)
             self.set_status_message(_("Error uninstalling package")); self.output_expander.hide(); self.enable_gui(); self.stop_spinner()
 
-    def confirm_flatpak_install(self, iter_):
-        display_label = self.liststore.get_value(iter_, 1)
-        app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
-        dlg = Gtk.MessageDialog(parent=self, modal=True, message_type=Gtk.MessageType.QUESTION,
-                                buttons=Gtk.ButtonsType.YES_NO,
-                                text=_("Do you want to install {}?").format(display_label))
-        dlg.format_secondary_text(_("This will install the Flatpak from Flathub."))
-        if dlg.run() != Gtk.ResponseType.YES:
-            dlg.destroy()
-            return
-        dlg.destroy()
-
-        self.disable_gui()
-        self.start_spinner(_("Installing {}...").format(display_label))
-        self.set_status_message(_("Installing {}...").format(display_label))
-        self.output_textview.get_buffer().set_text("")
-        self.output_expander.show()
-        self.output_expander.set_expanded(True)
-
-        def on_install_done(returncode):
-            if returncode == 0:
-                self.stop_spinner()
-                self.set_status_message(_("Installed {}.").format(display_label))
-                def after_refresh():
-                    def on_main_thread():
-                        self.clear_liststore()
-                        if self.last_search == _("installed"):
-                            self.on_show_installed_packages(None)
-                        elif self.last_search:
-                            advanced = self.advanced_search_checkbox.get_active()
-                            search_cmd = ["luet", "search", "-o", "json", "-q", self.last_search]
-                            self.start_spinner(_("Refreshing results..."))
-                            self.start_search_thread(search_cmd, advanced)
-                        else:
-                            self.enable_gui()
-                    GLib.idle_add(on_main_thread)
-                if self.appstream_index:
-                    self.appstream_index.refresh_installed(on_done=after_refresh)
-                else:
-                    after_refresh()
-            else:
-                self.stop_spinner()
-                self.set_status_message(_("Error installing {}").format(display_label))
-                self.enable_gui()
-
-        try:
-            FlatpakOperations.run_installation(self.command_runner.run_realtime, self.append_to_log, on_install_done, app_id)
-        except Exception as e:
-            print("Exception launching flatpak installation:", e)
-            self.set_status_message(_("Error installing package")); self.output_expander.hide(); self.enable_gui(); self.stop_spinner()
-
-    def confirm_flatpak_remove(self, iter_):
-        display_label = self.liststore.get_value(iter_, 1)
-        app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
-        dlg = Gtk.MessageDialog(parent=self, modal=True, message_type=Gtk.MessageType.QUESTION,
-                                buttons=Gtk.ButtonsType.YES_NO,
-                                text=_("Do you want to remove {}?").format(display_label))
-        dlg.format_secondary_text(_("This will remove the Flatpak application."))
-        if dlg.run() != Gtk.ResponseType.YES:
-            dlg.destroy()
-            return
-        dlg.destroy()
-
-        self.disable_gui()
-        self.start_spinner(_("Removing {}...").format(display_label))
-        self.set_status_message(_("Removing {}...").format(display_label))
-        self.output_textview.get_buffer().set_text("")
-        self.output_expander.show()
-        self.output_expander.set_expanded(True)
-
-        def on_remove_done(returncode):
-            if returncode == 0:
-                self.stop_spinner()
-                self.set_status_message(_("Removed {}.").format(display_label))
-                def after_refresh():
-                    def on_main_thread():
-                        self.clear_liststore()
-                        if self.last_search == _("installed"):
-                            self.on_show_installed_packages(None)
-                        elif self.last_search:
-                            advanced = self.advanced_search_checkbox.get_active()
-                            search_cmd = ["luet", "search", "-o", "json", "-q", self.last_search]
-                            self.start_spinner(_("Refreshing results..."))
-                            self.start_search_thread(search_cmd, advanced)
-                        else:
-                            self.enable_gui()
-                    GLib.idle_add(on_main_thread)
-                if self.appstream_index:
-                    self.appstream_index.refresh_installed(on_done=after_refresh)
-                else:
-                    after_refresh()
-            else:
-                self.stop_spinner()
-                self.set_status_message(_("Error removing {}").format(display_label))
-                self.enable_gui()
-
-        try:
-            FlatpakOperations.run_removal(self.command_runner.run_realtime, self.append_to_log, on_remove_done, app_id)
-        except Exception as e:
-            print("Exception launching flatpak removal:", e)
-            self.set_status_message(_("Error removing package")); self.output_expander.hide(); self.enable_gui(); self.stop_spinner()
-
     def clear_liststore(self):
         self.liststore.clear()
-        self._flatpak_appids.clear()
 
     def on_details_action(self, package_info):
         """Called when Install/Remove is clicked in the details window."""
         self.enable_gui()
         iter_ = self.liststore.get_iter_first()
-        is_flatpak = package_info.get("_flatpak", False)
         while iter_:
-            cat_match = self.liststore.get_value(iter_, 0) == package_info.get("category", "")
-            if is_flatpak:
-                display_label = self.liststore.get_value(iter_, 1)
-                name_match = self._flatpak_appids.get(("flatpak", display_label), display_label) == package_info.get("name", "")
-            else:
-                name_match = self.liststore.get_value(iter_, 1) == package_info.get("name", "")
-            if cat_match and name_match:
-                if package_info.get("_flatpak", False):
-                    if package_info.get("installed", False):
-                        self.confirm_flatpak_remove(iter_)
-                    else:
-                        self.confirm_flatpak_install(iter_)
-                elif package_info.get("is_actually_installed") or package_info.get("installed"):
+            if (self.liststore.get_value(iter_, 0) == package_info.get("category", "") and
+                    self.liststore.get_value(iter_, 1) == package_info.get("name", "")):
+                if package_info.get("is_actually_installed") or package_info.get("installed"):
                     self.confirm_uninstall(iter_)
                 else:
                     self.confirm_install(iter_)
@@ -1475,17 +1243,10 @@ class SearchApp(Gtk.Window):
 
     def show_package_details_popup(self, package_info):
         repository = ""
-        is_flatpak = package_info.get("_flatpak", False)
         iter_ = self.liststore.get_iter_first()
         while iter_:
-            display_label = self.liststore.get_value(iter_, 1)
-            if is_flatpak:
-                stored_appid = self._flatpak_appids.get(("flatpak", display_label), display_label)
-                name_match = stored_appid == package_info["name"]
-            else:
-                name_match = display_label == package_info["name"]
-            if self.liststore.get_value(iter_, 0) == package_info["category"] and name_match:
-                repository = self.liststore.get_value(iter_, 4)
+            if self.liststore.get_value(iter_, 0) == package_info["category"] and self.liststore.get_value(iter_, 1) == package_info["name"]:
+                repository = self.liststore.get_value(iter_, 4) # Was 3
                 break
             iter_ = self.liststore.iter_next(iter_)
         package_info["repository"] = repository
