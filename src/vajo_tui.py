@@ -65,6 +65,15 @@ except Exception as e:
     print(f"Failed to initialize vajo_core: {e}", file=sys.stderr)
     sys.exit(1)
 
+try:
+    from modules.flatpak import FlatpakBackend, FlatpakOperations, AppstreamIndex, FLATPAK_ENABLED, ACTION_FLATPAK_READONLY
+except ImportError:
+    FLATPAK_ENABLED = False
+    ACTION_FLATPAK_READONLY = 3
+    FlatpakBackend = None
+    FlatpakOperations = None
+    AppstreamIndex = None
+
 # Import packaging for version comparison
 try:
     from packaging import version as pkg_version
@@ -393,6 +402,9 @@ class LuetTUI:
         # Description index for treefs-based description search
         self.desc_index = DescriptionIndex()
 
+        # Appstream index for Flatpak search (only built when --flatpak is active)
+        self.appstream_index = AppstreamIndex() if (FLATPAK_ENABLED and AppstreamIndex) else None
+
         self.init_app()
 
         # Show "Initializing..." so is_busy=True blocks all input until ready
@@ -405,6 +417,11 @@ class LuetTUI:
         # Start building the description index in the background
         Debug.log("TUI: starting description index build")
         self.desc_index.build_async(self.command_runner.run_sync, on_ready_callback=self._on_index_ready)
+
+        # Start building the Flatpak appstream index in the background (no-op if disabled)
+        if self.appstream_index is not None:
+            Debug.log("TUI: starting appstream index build")
+            self.appstream_index.build_async()
 
     def cleanup(self):
         """Clean up resources before exit"""
@@ -755,6 +772,8 @@ class LuetTUI:
                 # Determine action based on installed and upgradeable status
                 if pkg.get("protected", False):
                     action = _("Protected")
+                elif pkg.get("_flatpak", False):
+                    action = _("Remove") if pkg.get("installed", False) else _("Install")
                 elif pkg.get("installed", False) or upgrade_symbol == "↑":
                     action = _("Remove")
                 else:
@@ -764,7 +783,8 @@ class LuetTUI:
                 version_to_display = pkg.get("version", "")
                 
                 # Updated line format with upgrade symbol
-                line = f"{pkg.get('category','')[:16]:16} {pkg.get('name','')[:28]:28} {upgrade_symbol:2} {version_to_display[:16]:16} {pkg.get('repository','')[:20]:20} {action:8}"
+                display_name = pkg.get("_flatpak_label", pkg.get("name", "")) if pkg.get("_flatpak") else pkg.get("name", "")
+                line = f"{pkg.get('category','')[:16]:16} {display_name[:28]:28} {upgrade_symbol:2} {version_to_display[:16]:16} {pkg.get('repository','')[:20]:20} {action:8}"
                 
                 attr = dim_attr
                 if not is_busy and self.focus == 'list' and row_idx == self.selected_index:
@@ -1234,6 +1254,27 @@ class LuetTUI:
             })
 
         packages.sort(key=lambda p: (p["category"], p["name"]))
+
+        # Append installed Flatpak packages when --flatpak is active
+        if FLATPAK_ENABLED and self.appstream_index is not None:
+            with self.appstream_index._lock:
+                installed_ids = set(self.appstream_index._installed_ids)
+                index = dict(self.appstream_index._index)
+            for app_id in sorted(installed_ids):
+                entry = index.get(app_id, {})
+                packages.append({
+                    "category":              "flatpak",
+                    "name":                  app_id,
+                    "version":               entry.get("version", ""),
+                    "repository":            "Flathub",
+                    "is_actually_installed": True,
+                    "installed":             True,
+                    "protected":             False,
+                    "upgrade_symbol":        "",
+                    "description":           entry.get("summary", ""),
+                    "_flatpak_label":        entry.get("name", app_id),
+                    "_flatpak":              True,
+                })
         self.search_query = _("installed")
         self.on_search_finished({"packages": packages})
 
@@ -1286,6 +1327,13 @@ class LuetTUI:
                         enriched = SearchProcessor._enrich_package_info(dict(pkg), installed_packages_dict)
                         result["packages"].append(enriched)
 
+                # Merge Flatpak results when --flatpak flag is active
+                if FLATPAK_ENABLED and self.appstream_index is not None:
+                    if not self.appstream_index.is_ready:
+                        self.appstream_index._ready_event.wait(timeout=3.0)
+                    flatpak_packages = self.appstream_index.search(sanitized_query)
+                    result = FlatpakBackend.merge(result, {"packages": flatpak_packages})
+
                 self.scheduler.schedule(self.on_search_finished, result)
             except Exception as e:
                 self.scheduler.schedule(self.append_to_log, _("Search core error: {}").format(e))
@@ -1310,7 +1358,10 @@ class LuetTUI:
                     "repository": pkg.get("repository", ""),
                     "installed": pkg.get('is_actually_installed', False),
                     "protected": pkg.get('protected', False),
-                    "upgrade_symbol": pkg.get('upgrade_symbol', '')  # This should now contain "↑"
+                    "upgrade_symbol": pkg.get('upgrade_symbol', ''),  # This should now contain "↑"
+                    "_flatpak": pkg.get('_flatpak', False),
+                    "_flatpak_label": pkg.get('_flatpak_label', ""),
+                    "description": pkg.get('description', ""),
                 })
             self.selected_index = 0
             self.results_scroll_offset = 0
@@ -1331,7 +1382,54 @@ class LuetTUI:
         full_name = f"{pkg['category']}/{pkg['name']}"
         installed = pkg.get("installed", False)
         protected = pkg.get("protected", False)
-        
+
+        if pkg.get("_flatpak", False):
+            app_id = pkg["name"]
+            display_label = pkg.get("_flatpak_label", app_id)
+            if installed:
+                if not self.confirm_yes_no(_("Do you want to remove {}?").format(display_label)):
+                    return
+                self.set_status(_("Removing {}...").format(display_label))
+                self.draw()
+                def on_flatpak_remove_done(returncode):
+                    def after_refresh():
+                        if returncode == 0:
+                            self.set_status(_("Removed {}.").format(display_label))
+                        else:
+                            self.set_status(_("Error removing {}.").format(display_label))
+                        if self.search_query:
+                            self.scheduler.schedule(self.run_search, self.search_query)
+                    if self.appstream_index:
+                        self.appstream_index.refresh_installed(on_done=after_refresh)
+                    else:
+                        after_refresh()
+                try:
+                    FlatpakOperations.run_removal(self.command_runner.run_realtime, self.append_to_log, on_flatpak_remove_done, app_id)
+                except Exception as e:
+                    self.set_status(_("Error removing package"))
+            else:
+                if not self.confirm_yes_no(_("Do you want to install {}?").format(display_label)):
+                    return
+                self.set_status(_("Installing {}...").format(display_label))
+                self.draw()
+                def on_flatpak_install_done(returncode):
+                    def after_refresh():
+                        if returncode == 0:
+                            self.set_status(_("Installed {}.").format(display_label))
+                        else:
+                            self.set_status(_("Error installing {}.").format(display_label))
+                        if self.search_query:
+                            self.scheduler.schedule(self.run_search, self.search_query)
+                    if self.appstream_index:
+                        self.appstream_index.refresh_installed(on_done=after_refresh)
+                    else:
+                        after_refresh()
+                try:
+                    FlatpakOperations.run_installation(self.command_runner.run_realtime, self.append_to_log, on_flatpak_install_done, app_id)
+                except Exception as e:
+                    self.set_status(_("Error installing package"))
+            return
+
         if protected:
             msg = PackageFilter.get_protection_message(pkg['category'], pkg['name'])
             if msg is None:
@@ -1426,6 +1524,25 @@ class LuetTUI:
             or pkg.get('version', '')
         )
 
+        # --- Flatpak branch: build details from appstream index, skip luet API ---
+        if pkg.get('_flatpak', False):
+            display_label = pkg.get('_flatpak_label', name)
+            lines = []
+            lines.append(_("Package:     {}").format(display_label))
+            lines.append(_("Version:     {}").format(version_to_use))
+            lines.append(_("Installed:   {}").format(_("Yes") if installed else _("No")))
+            lines.append(_("Repository:  {}").format(repository))
+            description = pkg.get('description', '')
+            if description:
+                lines.append("")
+                lines.append(_("Description: {}").format(description))
+            lines.append("")
+            lines.append(_("Flathub:     https://flathub.org/apps/{}").format(name))
+            text = "\n".join(lines)
+            title = _("Details for {}").format(display_label)
+            self.show_package_details_interactive(title, text, category, name, installed, pkg)
+            return
+
         details = PackageDetails.get_definition_yaml(
             self.command_runner.run_sync,
             repository,
@@ -1484,9 +1601,11 @@ class LuetTUI:
         max_scroll = max(0, len(lines) - max_visible)
         action_requested = False
 
-        # Pre-check revdeps for installed packages to decide if Remove is allowed
+        # Pre-check revdeps for installed luet packages to decide if Remove is allowed
+        # Flatpak has no concept of reverse dependencies in this context
         has_revdeps = False
-        if installed and not pkg.get("protected", False):
+        is_flatpak = pkg.get("_flatpak", False)
+        if installed and not pkg.get("protected", False) and not is_flatpak:
             revdeps = PackageDetails.get_required_by(self.command_runner.run_sync, category, name)
             has_revdeps = len(revdeps) > 0
 
@@ -1506,8 +1625,9 @@ class LuetTUI:
                     win.addstr(hh - 2, 2, scroll_info, curses.A_DIM)
                 
                 hints_parts = ["Keys:"]
-                hints_parts.append("f=files")
-                if installed:
+                if not is_flatpak:
+                    hints_parts.append("f=files")
+                if installed and not is_flatpak:
                     hints_parts.append("r=required by")
                 if not pkg.get("protected", False):
                     if has_revdeps and installed:
@@ -1525,9 +1645,9 @@ class LuetTUI:
 
                 ch = win.getch()
 
-                if ch in (ord('f'), ord('F')):
+                if not is_flatpak and ch in (ord('f'), ord('F')):
                     self.show_package_files(category, name)
-                elif installed and ch in (ord('r'), ord('R')):
+                elif not is_flatpak and installed and ch in (ord('r'), ord('R')):
                     self.show_package_revdeps(category, name)
                 elif ch in (ord('i'), ord('I')) and not pkg.get("protected", False) and not has_revdeps:
                     action_requested = True
