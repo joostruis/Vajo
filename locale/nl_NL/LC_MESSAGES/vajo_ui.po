@@ -1,6 +1,6 @@
-# Dutch translations for luet_pm package.
+# Dutch translations for Vajo package.
 # Copyright (C) 2025 MocaccinoOS
-# This file is distributed under the same license as the luet_pm package.
+# This file is distributed under the same license as the Vajo package.
 # Joost Ruis <joost.ruis@mocaccino.org>, 2025.
 #
 msgid ""
