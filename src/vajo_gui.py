@@ -1054,6 +1054,7 @@ class SearchApp(Gtk.Window):
         self.search_button.set_sensitive(sensitive)
         self.treeview.set_sensitive(sensitive)
         self.treeview.set_has_tooltip(sensitive)
+        self.results_filter_entry.set_sensitive(sensitive)
         for item in self.menu_bar.get_children():
             if isinstance(item, Gtk.MenuItem): item.set_sensitive(sensitive)
 
