@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: Vajo VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-25 12:43+0200\n"
-"PO-Revision-Date: 2025-09-16 21:20+0200\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: none\n"
+"PO-Revision-Date: 2026-05-25 14:00+0200\n"
+"Last-Translator: Gemini\n"
+"Language-Team: Ukrainian\n"
 "Language: uk\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -21,19 +21,19 @@ msgstr ""
 #: vajo_gui.py:99 vajo_gui.py:761 vajo_tui.py:167 vajo_tui.py:335
 #: vajo_tui.py:1094
 msgid "Preferences"
-msgstr ""
+msgstr "Налаштування"
 
 #: vajo_gui.py:102 vajo_gui.py:401 vajo_gui.py:1851
 msgid "Close"
-msgstr ""
+msgstr "Закрити"
 
 #: vajo_gui.py:117
 msgid "Modules"
-msgstr ""
+msgstr "Модулі"
 
 #: vajo_gui.py:122 vajo_tui.py:1102
 msgid "Enable Flatpak support (Flathub)"
-msgstr ""
+msgstr "Увімкнути підтримку Flatpak (Flathub)"
 
 #: vajo_gui.py:126
 msgid ""
@@ -41,158 +41,163 @@ msgid ""
 "Requires flatpak to be installed (apps/flatpak).\n"
 "Takes effect after restarting Vajo."
 msgstr ""
+"Пошук та встановлення програм Flatpak з Flathub.\n"
+"Потребує встановленого flatpak (apps/flatpak).\n"
+"Набере чинності після перезапуску Vajo."
 
 #: vajo_gui.py:130
 msgid "Flatpak is not installed on this system (apps/flatpak required)."
-msgstr ""
+msgstr "Flatpak не встановлено в цій системі (потрібно apps/flatpak)."
 
 #: vajo_gui.py:136 vajo_tui.py:1103
 msgid "Enable Rollback support"
-msgstr ""
+msgstr "Увімкнути підтримку відкату (Rollback)"
 
 #: vajo_gui.py:140
 msgid ""
 "Show the Roll back item in the File menu.\n"
 "Takes effect after restarting Vajo."
 msgstr ""
+"Показувати пункт «Відкат» у меню «Файл».\n"
+"Набере чинності після перезапуску Vajo."
 
 #: vajo_gui.py:143
 msgid "Rollback is only available on systems using stable repositories."
-msgstr ""
+msgstr "Відкат доступний лише в системах, що використовують стабільні репозиторії."
 
 #: vajo_gui.py:148 vajo_tui.py:1137
 msgid "Changes take effect after restarting Vajo."
-msgstr ""
+msgstr "Зміни наберуть чинності після перезапуску Vajo."
 
 #: vajo_gui.py:171
 msgid "Visit our website"
-msgstr ""
+msgstr "Відвідайте наш вебсайт"
 
 #: vajo_gui.py:184
 msgid "Git repository"
-msgstr ""
+msgstr "Git-репозиторій"
 
 #: vajo_gui.py:205
 msgid "Package Details"
-msgstr ""
+msgstr "Деталі пакета"
 
 #: vajo_gui.py:247
 msgid "Package:"
-msgstr ""
+msgstr "Пакет:"
 
 #: vajo_gui.py:248
 msgid "Version:"
-msgstr ""
+msgstr "Версія:"
 
 #: vajo_gui.py:249
 msgid "Installed:"
-msgstr ""
+msgstr "Встановлено:"
 
 #: vajo_gui.py:249 vajo_tui.py:1613 vajo_core.py:1204
 msgid "Yes"
-msgstr ""
+msgstr "Так"
 
 #: vajo_gui.py:249 vajo_tui.py:1613 vajo_core.py:1204
 msgid "No"
-msgstr ""
+msgstr "Ні"
 
 #: vajo_gui.py:282 vajo_gui.py:331
 msgid "Repository:"
-msgstr ""
+msgstr "Репозиторій:"
 
 #: vajo_gui.py:292 vajo_gui.py:339
 msgid "Description:"
-msgstr ""
+msgstr "Опис:"
 
 #: vajo_gui.py:302 vajo_gui.py:347
 msgid "License:"
-msgstr ""
+msgstr "Ліцензія:"
 
 #: vajo_gui.py:354
 msgid "Required by"
-msgstr ""
+msgstr "Потрібно для"
 
 #: vajo_gui.py:366
 msgid "Package files"
-msgstr ""
+msgstr "Файли пакета"
 
 #: vajo_gui.py:368
 msgid "Filter files..."
-msgstr ""
+msgstr "Фільтрувати файли..."
 
 #: vajo_gui.py:373 vajo_gui.py:758 vajo_tui.py:160
 msgid "File"
-msgstr ""
+msgstr "Файл"
 
 #: vajo_gui.py:406 vajo_gui.py:1153 vajo_gui.py:1155 vajo_tui.py:790
 #: vajo_tui.py:792
 msgid "Remove"
-msgstr ""
+msgstr "Видалити"
 
 #: vajo_gui.py:406 vajo_gui.py:1153 vajo_gui.py:1157 vajo_tui.py:790
 #: vajo_tui.py:794
 msgid "Install"
-msgstr ""
+msgstr "Встановити"
 
 #: vajo_gui.py:449
 msgid "Copy All Files"
-msgstr ""
+msgstr "Копіювати всі файли"
 
 #: vajo_gui.py:468
 msgid "Checking dependencies..."
-msgstr ""
+msgstr "Перевірка залежностей..."
 
 #: vajo_gui.py:474
 msgid "Error retrieving required by information."
-msgstr ""
+msgstr "Помилка при отриманні інформації «потрібно для»."
 
 #: vajo_gui.py:488
 msgid "Cannot remove: other packages depend on this one"
-msgstr ""
+msgstr "Неможливо видалити: інші пакети залежать від цього"
 
 #: vajo_gui.py:490
 msgid "There are no packages installed that require this package."
-msgstr ""
+msgstr "Немає встановлених пакетів, які потребують цього пакета."
 
 #: vajo_gui.py:504
 msgid "Loading..."
-msgstr ""
+msgstr "Завантаження..."
 
 #: vajo_gui.py:515
 msgid "Error retrieving package files information."
-msgstr ""
+msgstr "Помилка при отриманні інформації про файли пакета."
 
 #: vajo_gui.py:518
 msgid "No files found for this package."
-msgstr ""
+msgstr "Для цього пакета не знайдено файлів."
 
 #: vajo_gui.py:547
 msgid "revdeps failed:"
-msgstr ""
+msgstr "Помилка revdeps:"
 
 #: vajo_gui.py:556
 msgid "Error retrieving required by info:"
-msgstr ""
+msgstr "Помилка при отриманні інформації «потрібно для»:"
 
 #: vajo_gui.py:564
 msgid "search for package failed:"
-msgstr ""
+msgstr "Помилка пошуку пакета:"
 
 #: vajo_gui.py:572
 msgid "Error retrieving package files info:"
-msgstr ""
+msgstr "Помилка при отриманні інформації про файли пакета:"
 
 #: vajo_gui.py:581
 msgid "Luet Package Search"
-msgstr ""
+msgstr "Пошук пакетів Luet"
 
 #: vajo_gui.py:637
 msgid "Warning: no pkexec/sudo found - admin actions will fail"
-msgstr ""
+msgstr "Попередження: не знайдено pkexec/sudo - дії адміністратора не працюватимуть"
 
 #: vajo_gui.py:641 vajo_tui.py:425
 msgid "Initializing..."
-msgstr ""
+msgstr "Ініціалізація..."
 
 #: vajo_gui.py:689 vajo_gui.py:794 vajo_gui.py:1356 vajo_gui.py:1600
 #: vajo_gui.py:1616 vajo_gui.py:1667 vajo_gui.py:1700 vajo_gui.py:1762
@@ -202,299 +207,302 @@ msgstr ""
 #: vajo_tui.py:1253 vajo_tui.py:1268 vajo_tui.py:1288 vajo_tui.py:1450
 #: vajo_tui.py:1525 vajo_tui.py:2104 vajo_tui.py:2136 vajo_core.py:509
 msgid "Ready"
-msgstr ""
+msgstr "Готово"
 
 #: vajo_gui.py:724 vajo_tui.py:166 vajo_tui.py:269 vajo_tui.py:317
 msgid "Update repositories"
-msgstr ""
+msgstr "Оновити репозиторії"
 
 #: vajo_gui.py:728 vajo_tui.py:166 vajo_tui.py:270 vajo_tui.py:320
 msgid "Full system upgrade"
-msgstr ""
+msgstr "Повне оновлення системи"
 
 #: vajo_gui.py:731 vajo_tui.py:166 vajo_tui.py:323
 msgid "Installed packages"
-msgstr ""
+msgstr "Встановлені пакети"
 
 #: vajo_gui.py:734 vajo_tui.py:166 vajo_tui.py:325
 msgid "Check system"
-msgstr ""
+msgstr "Перевірити систему"
 
 #: vajo_gui.py:737 vajo_gui.py:1831 vajo_gui.py:1945 vajo_tui.py:229
 #: vajo_tui.py:330
 msgid "Roll back"
-msgstr ""
+msgstr "Відкат"
 
 #: vajo_gui.py:745 vajo_gui.py:1818 vajo_tui.py:188 vajo_core.py:651
 msgid "Clear Luet cache"
-msgstr ""
+msgstr "Очистити кеш Luet"
 
 #: vajo_gui.py:748 vajo_tui.py:166 vajo_tui.py:315
 msgid "Quit"
-msgstr ""
+msgstr "Вийти"
 
 #: vajo_gui.py:752 vajo_tui.py:168 vajo_tui.py:337
 msgid "Documentation"
-msgstr ""
+msgstr "Документація"
 
 #: vajo_gui.py:755 vajo_tui.py:168 vajo_tui.py:339 vajo_tui.py:341
 msgid "About"
-msgstr ""
+msgstr "Про програму"
 
 #: vajo_gui.py:764 vajo_tui.py:160
 msgid "Edit"
-msgstr ""
+msgstr "Редагувати"
 
 #: vajo_gui.py:766 vajo_tui.py:160
 msgid "Help"
-msgstr ""
+msgstr "Допомога"
 
 #: vajo_gui.py:807 vajo_tui.py:725
 msgid "Enter package name"
-msgstr ""
+msgstr "Введіть назву пакета"
 
 #: vajo_gui.py:810
 msgid "Advanced"
-msgstr ""
+msgstr "Додатково"
 
 #: vajo_gui.py:812
 msgid "Check this box to also search inside filenames and labels"
-msgstr ""
+msgstr "Поставте прапорець, щоб також шукати в іменах файлів та мітках"
 
 #: vajo_gui.py:815 vajo_tui.py:713
 msgid "Search"
-msgstr ""
+msgstr "Пошук"
 
 #: vajo_gui.py:833 vajo_tui.py:769
 msgid "Category"
-msgstr ""
+msgstr "Категорія"
 
 #: vajo_gui.py:834 vajo_tui.py:769
 msgid "Name"
-msgstr ""
+msgstr "Назва"
 
 #: vajo_gui.py:836 vajo_gui.py:1981 vajo_tui.py:769 vajo_core.py:1186
 msgid "Version"
-msgstr ""
+msgstr "Версія"
 
 #: vajo_gui.py:837 vajo_tui.py:769 vajo_core.py:1191
 msgid "Repository"
-msgstr ""
+msgstr "Репозиторій"
 
 #: vajo_gui.py:838 vajo_tui.py:769
 msgid "Action"
-msgstr ""
+msgstr "Дія"
 
 #: vajo_gui.py:839 vajo_gui.py:1172
 msgid "Details"
-msgstr ""
+msgstr "Деталі"
 
 #: vajo_gui.py:908 vajo_tui.py:822 vajo_tui.py:847
 msgid "Toggle output log"
-msgstr ""
+msgstr "Перемкнути журнал виводу"
 
 #: vajo_gui.py:1046 vajo_gui.py:1346 vajo_gui.py:1451 vajo_gui.py:1748
 #: vajo_tui.py:1013 vajo_tui.py:1282 vajo_tui.py:1356 vajo_tui.py:1526
 msgid "installed"
-msgstr ""
+msgstr "встановлено"
 
 #: vajo_gui.py:1066 vajo_tui.py:1372
 msgid "Invalid search query"
-msgstr ""
+msgstr "Некоректний запит пошуку"
 
 #: vajo_gui.py:1075 vajo_gui.py:1755 vajo_tui.py:1360
 msgid "Searching for {}..."
-msgstr ""
+msgstr "Пошук {}..."
 
 #: vajo_gui.py:1151 vajo_tui.py:788 vajo_tui.py:1517
 msgid "Protected"
-msgstr ""
+msgstr "Захищено"
 
 #: vajo_gui.py:1188 vajo_tui.py:1449
 msgid "Found {} results matching '{}'"
-msgstr ""
+msgstr "Знайдено {} результатів для '{}'"
 
 #: vajo_gui.py:1189 vajo_gui.py:1616
 msgid "No results"
-msgstr ""
+msgstr "Немає результатів"
 
 #: vajo_gui.py:1193
 msgid "Error processing search results:"
-msgstr ""
+msgstr "Помилка обробки результатів пошуку:"
 
 #: vajo_gui.py:1194
 msgid "Error displaying search results"
-msgstr ""
+msgstr "Помилка відображення результатів пошуку"
 
 #: vajo_gui.py:1335 vajo_tui.py:1516 vajo_tui.py:1660
 msgid "This package ({}) is protected and can't be removed."
-msgstr ""
+msgstr "Цей пакет ({}) захищений і не може бути видалений."
 
 #: vajo_gui.py:1353
 msgid "Searching again for '{}'..."
-msgstr ""
+msgstr "Повторний пошук '{}'..."
 
 #: vajo_gui.py:1361 vajo_gui.py:1472 vajo_tui.py:1491 vajo_tui.py:1563
 msgid "Do you want to install {}?"
-msgstr ""
+msgstr "Встановити {}?"
 
 #: vajo_gui.py:1372 vajo_gui.py:1373 vajo_gui.py:1474 vajo_tui.py:1493
 #: vajo_tui.py:1567
 msgid "Installing {}..."
-msgstr ""
+msgstr "Встановлення {}..."
 
 #: vajo_gui.py:1381 vajo_gui.py:1419 vajo_tui.py:1003 vajo_tui.py:1543
 #: vajo_tui.py:1574
 msgid "Finalizing: Updating package cache..."
-msgstr ""
+msgstr "Завершення: Оновлення кешу пакетів..."
 
 #: vajo_gui.py:1389 vajo_gui.py:1396 vajo_tui.py:1510
 msgid "Error installing package"
-msgstr ""
+msgstr "Помилка встановлення пакета"
 
 #: vajo_gui.py:1401 vajo_tui.py:1533
 msgid "Do you want to uninstall {}?"
-msgstr ""
+msgstr "Видалити {}?"
 
 #: vajo_gui.py:1402
 msgid ""
 "This will remove the package and its dependencies not required by other "
 "packages."
 msgstr ""
+"Це видалить пакет та його залежності, які не потрібні іншим пакетам."
 
 #: vajo_gui.py:1410 vajo_gui.py:1411 vajo_tui.py:1536
 msgid "Uninstalling {}..."
-msgstr ""
+msgstr "Видалення {}..."
 
 #: vajo_gui.py:1427
 msgid "Error uninstalling package: '{}'"
-msgstr ""
+msgstr "Помилка видалення пакета: '{}'"
 
 #: vajo_gui.py:1441
 msgid "Error uninstalling package"
-msgstr ""
+msgstr "Помилка видалення пакета"
 
 #: vajo_gui.py:1456
 msgid "Refreshing results..."
-msgstr ""
+msgstr "Оновлення результатів..."
 
 #: vajo_gui.py:1473
 msgid "This will install the Flatpak from Flathub."
-msgstr ""
+msgstr "Це встановить Flatpak з Flathub."
 
 #: vajo_gui.py:1475 vajo_tui.py:1498
 msgid "Installed {}."
-msgstr ""
+msgstr "Встановлено {}."
 
 #: vajo_gui.py:1476
 msgid "Error installing {}"
-msgstr ""
+msgstr "Помилка встановлення {}"
 
 #: vajo_gui.py:1480 vajo_tui.py:1470
 msgid "Do you want to remove {}?"
-msgstr ""
+msgstr "Видалити {}?"
 
 #: vajo_gui.py:1481
 msgid "This will remove the Flatpak application."
-msgstr ""
+msgstr "Це видалить програму Flatpak."
 
 #: vajo_gui.py:1482 vajo_tui.py:1472
 msgid "Removing {}..."
-msgstr ""
+msgstr "Видалення {}..."
 
 #: vajo_gui.py:1483 vajo_tui.py:1477
 msgid "Removed {}."
-msgstr ""
+msgstr "Видалено {}."
 
 #: vajo_gui.py:1484
 msgid "Error removing {}"
-msgstr ""
+msgstr "Помилка видалення {}"
 
 #: vajo_gui.py:1558
 msgid "Please search for the package first."
-msgstr ""
+msgstr "Будь ласка, спочатку знайдіть пакет."
 
 #: vajo_gui.py:1650 vajo_tui.py:952
 msgid "Updating repositories..."
-msgstr ""
+msgstr "Оновлення репозиторіїв..."
 
 #: vajo_gui.py:1657 vajo_tui.py:959
 msgid "Repositories updated"
-msgstr ""
+msgstr "Репозиторії оновлено"
 
 #: vajo_gui.py:1659 vajo_gui.py:1666 vajo_tui.py:964
 msgid "Error updating repositories"
-msgstr ""
+msgstr "Помилка оновлення репозиторіїв"
 
 #: vajo_gui.py:1687 vajo_tui.py:1061
 msgid "Checking system for missing files..."
-msgstr ""
+msgstr "Перевірка системи на наявність відсутніх файлів..."
 
 #: vajo_gui.py:1695
 msgid "Missing files: preparing to reinstall..."
-msgstr ""
+msgstr "Відсутні файли: підготовка до перевстановлення..."
 
 #: vajo_gui.py:1700 vajo_tui.py:1076
 msgid "Could not repair some packages"
-msgstr ""
+msgstr "Не вдалося відновити деякі пакети"
 
 #: vajo_gui.py:1719 vajo_tui.py:990
 msgid "Perform a full system upgrade?"
-msgstr ""
+msgstr "Виконати повне оновлення системи?"
 
 #: vajo_gui.py:1720
 msgid ""
 "This will update all repositories and then upgrade all installed packages. "
 "This action may take some time and requires an internet connection."
 msgstr ""
+"Це оновить усі репозиторії, а потім оновить усі встановлені пакети. Ця дія "
+"може зайняти деякий час і вимагає підключення до Інтернету."
 
 #: vajo_gui.py:1727
 msgid "Performing full system upgrade"
-msgstr ""
+msgstr "Виконання повного оновлення системи"
 
 #: vajo_gui.py:1730 vajo_tui.py:994
 msgid "Performing full system upgrade..."
-msgstr ""
+msgstr "Виконання повного оновлення системи..."
 
 #: vajo_gui.py:1760 vajo_tui.py:1031
 msgid "Error during system upgrade"
-msgstr ""
+msgstr "Помилка під час оновлення системи"
 
 #: vajo_gui.py:1778 vajo_tui.py:1160
 msgid "Clear Luet cache?"
-msgstr ""
+msgstr "Очистити кеш Luet?"
 
 #: vajo_gui.py:1779
 msgid "This will run 'luet cleanup' and remove cached package data."
-msgstr ""
+msgstr "Це запустить 'luet cleanup' і видалить кешовані дані пакетів."
 
 #: vajo_gui.py:1788 vajo_tui.py:1162
 msgid "Clearing Luet cache..."
-msgstr ""
+msgstr "Очищення кешу Luet..."
 
 #: vajo_gui.py:1792 vajo_tui.py:1173
 msgid "Error clearing Luet cache"
-msgstr ""
+msgstr "Помилка очищення кешу Luet"
 
 #: vajo_gui.py:1808 vajo_tui.py:664
 msgid "Last sync: {}"
-msgstr ""
+msgstr "Остання синхронізація: {}"
 
 #: vajo_gui.py:1815 vajo_core.py:649
 msgid "Clear Luet cache ({})"
-msgstr ""
+msgstr "Очистити кеш Luet ({})"
 
 #: vajo_gui.py:1826 vajo_tui.py:229 vajo_tui.py:333
 msgid "View pinned state"
-msgstr ""
+msgstr "Переглянути стан закріплення"
 
 #: vajo_gui.py:1837 vajo_tui.py:531
 msgid "unknown"
-msgstr ""
+msgstr "невідомо"
 
 #: vajo_gui.py:1842
 msgid "System is pinned to a previous version"
-msgstr ""
+msgstr "Систему закріплено на попередній версії"
 
 #: vajo_gui.py:1845
 msgid ""
@@ -506,42 +514,49 @@ msgid ""
 "Click 'Unpin' to remove the pin. You can then roll back\n"
 "further or do a full upgrade when ready."
 msgstr ""
+"Desktop: {}\n"
+"\n"
+"Ваша система наразі закріплена на відкоченому знімку.\n"
+"Оновлення та відкати вимкнено, поки встановлено закріплення.\n"
+"\n"
+"Натисніть «Відкріпити» (Unpin), щоб зняти закріплення. Після цього ви зможете "
+"відкотитися далі або виконати повне оновлення, коли будете готові."
 
 #: vajo_gui.py:1852
 msgid "Unpin"
-msgstr ""
+msgstr "Відкріпити"
 
 #: vajo_gui.py:1861 vajo_tui.py:562
 msgid "Unpinning..."
-msgstr ""
+msgstr "Відкріплення..."
 
 #: vajo_gui.py:1881
 msgid "Unpinned. You can now roll back further or upgrade."
-msgstr ""
+msgstr "Відкріплено. Тепер ви можете відкотитися далі або оновитися."
 
 #: vajo_gui.py:1883 vajo_tui.py:576
 msgid "Error during unpin"
-msgstr ""
+msgstr "Помилка під час відкріплення"
 
 #: vajo_gui.py:1893 vajo_tui.py:1225
 msgid "Checking rollback availability..."
-msgstr ""
+msgstr "Перевірка доступності відкату..."
 
 #: vajo_gui.py:1898 vajo_tui.py:1234
 msgid "Cannot determine current desktop version."
-msgstr ""
+msgstr "Неможливо визначити поточну версію робочого столу."
 
 #: vajo_gui.py:1926 vajo_tui.py:1243
 msgid "No previous version available to roll back to."
-msgstr ""
+msgstr "Немає попередньої версії, доступної для відкату."
 
 #: vajo_gui.py:1938 vajo_tui.py:1197
 msgid "Select rollback target"
-msgstr ""
+msgstr "Виберіть ціль відкату"
 
 #: vajo_gui.py:1944
 msgid "Cancel"
-msgstr ""
+msgstr "Скасувати"
 
 #: vajo_gui.py:1958
 msgid ""
@@ -554,22 +569,31 @@ msgid ""
 "\n"
 "You can unpin later via the same menu to resume normal updates."
 msgstr ""
+"<b>Виберіть версію для відкату:</b>\n"
+"\n"
+"Відкат виконає пониження всіх системних пакетів до обраного знімка та "
+"<b>заблокує систему на цьому моменті часу</b>. Поки закріплено:\n"
+"  • Синхронізація репозиторіїв та оновлення вимкнено\n"
+"  • Встановлення пакетів все ще працює відносно закріпленого знімка\n"
+"\n"
+"Ви можете відкріпити пізніше через те саме меню, щоб відновити звичайні "
+"оновлення."
 
 #: vajo_gui.py:1981
 msgid "Date"
-msgstr ""
+msgstr "Дата"
 
 #: vajo_gui.py:1981
 msgid "Desktop"
-msgstr ""
+msgstr "Робочий стіл"
 
 #: vajo_gui.py:1981
 msgid "Community"
-msgstr ""
+msgstr "Спільнота"
 
 #: vajo_gui.py:2012
 msgid "Roll back to {}?"
-msgstr ""
+msgstr "Відкотитися до {}?"
 
 #: vajo_gui.py:2014
 msgid ""
@@ -584,30 +608,40 @@ msgid ""
 "\n"
 "Are you sure you want to continue?"
 msgstr ""
+"Це поверне вашу систему до:\n"
+"\n"
+"  Робочий стіл:   {}\n"
+"  Спільнота:      {}\n"
+"\n"
+"Буде виконано повне пониження системи, і систему буде\n"
+"закріплено на цьому знімку. Оновлення будуть вимкнені,\n"
+"поки ви не відкріпите вручну через меню «Відкат».\n"
+"\n"
+"Ви впевнені, що хочете продовжити?"
 
 #: vajo_gui.py:2032 vajo_tui.py:1271
 msgid "Rolling back..."
-msgstr ""
+msgstr "Виконання відкату..."
 
 #: vajo_gui.py:2060 vajo_tui.py:1280 modules/rollback.py:642
 msgid "Rollback completed successfully"
-msgstr ""
+msgstr "Відкат успішно завершено"
 
 #: vajo_tui.py:338 vajo_tui.py:1157 vajo_tui.py:1222 vajo_tui.py:1243
 msgid "Info"
-msgstr ""
+msgstr "Інформація"
 
 #: vajo_tui.py:338
 msgid "Opening luet documentation (URL TBD)"
-msgstr ""
+msgstr "Відкриття документації luet (URL TBD)"
 
 #: vajo_tui.py:358
 msgid "Not Synced"
-msgstr ""
+msgstr "Не синхронізовано"
 
 #: vajo_tui.py:518 vajo_core.py:1087
 msgid "repositories not synced"
-msgstr ""
+msgstr "репозиторії не синхронізовані"
 
 #: vajo_tui.py:532
 msgid ""
@@ -617,124 +651,136 @@ msgid ""
 "\n"
 "Updates and rollbacks are disabled while pinned."
 msgstr ""
+"Систему закріплено на попередній версії.\n"
+"\n"
+"Робочий стіл: {}\n"
+"\n"
+"Оновлення та відкати вимкнено, поки встановлено закріплення."
 
 #: vajo_tui.py:548
 msgid "Press 'u' to unpin, any other key to close."
-msgstr ""
+msgstr "Натисніть «u», щоб відкріпити, або будь-яку іншу клавішу, щоб закрити."
 
 #: vajo_tui.py:560
 msgid "Unpin the system?"
-msgstr ""
+msgstr "Відкріпити систему?"
 
 #: vajo_tui.py:610
 msgid "Terminal too small! Min 20x80."
-msgstr ""
+msgstr "Термінал занадто малий! Мінімум 20x80."
 
 #: vajo_tui.py:766
 msgid " Results "
-msgstr ""
+msgstr " Результати "
 
 #: vajo_tui.py:825
 msgid "Scrolled Up: {} line."
 msgid_plural "Scrolled Up: {} lines."
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "Прокручено вгору: {} рядок."
+msgstr[1] "Прокручено вгору: {} рядки."
+msgstr[2] "Прокручено вгору: {} рядків."
 
 #: vajo_tui.py:826
 msgid "{} ({} PgUp/PgDn to navigate)"
-msgstr ""
+msgstr "{} ({} PgUp/PgDn для навігації)"
 
 #: vajo_tui.py:856
 msgid ""
 "Keys: F9=menu | s=search | Enter=details | i=install/uninstall | l=toggle "
 "log | PgUp/PgDn=log scroll | q=quit"
 msgstr ""
+"Клавіші: F9=меню | s=пошук | Enter=деталі | i=встановити/видалити | "
+"l=перемкнути журнал | PgUp/PgDn=прокрутка журналу | q=вийти"
 
 #: vajo_tui.py:858
 msgid ""
 "SEARCH: Enter=submit | Esc/Down/Tab=back to list | Backspace/Del/Arrows=edit "
 "| q=quit"
 msgstr ""
+"ПОШУК: Enter=надіслати | Esc/Down/Tab=назад до списку | Backspace/Del/Arrows=редагувати "
+"| q=вийти"
 
 #: vajo_tui.py:917
 msgid "Press 'y' to confirm, any other key to cancel."
-msgstr ""
+msgstr "Натисніть «y» для підтвердження, або будь-яку іншу клавішу для скасування."
 
 #: vajo_tui.py:939
 msgid "Press any key to continue"
-msgstr ""
+msgstr "Натисніть будь-яку клавішу, щоб продовжити"
 
 #: vajo_tui.py:995
 msgid "Full system upgrade initiated."
-msgstr ""
+msgstr "Повне оновлення системи ініційовано."
 
 #: vajo_tui.py:1055
 msgid "Upgrade initiation failed: {}"
-msgstr ""
+msgstr "Ініціалізація оновлення не вдалася: {}"
 
 #: vajo_tui.py:1056
 msgid "Upgrade failed to start"
-msgstr ""
+msgstr "Не вдалося розпочати оновлення"
 
 #: vajo_tui.py:1072
 msgid ""
 "\n"
 "--- Missing packages found. Starting repair sequence. ---"
 msgstr ""
+"\n"
+"--- Знайдено відсутні пакети. Початок послідовності відновлення. ---"
 
 #: vajo_tui.py:1076
 msgid "System repair finished successfully."
-msgstr ""
+msgstr "Відновлення системи успішно завершено."
 
 #: vajo_tui.py:1094
 msgid "Config module not available."
-msgstr ""
+msgstr "Модуль конфігурації недоступний."
 
 #: vajo_tui.py:1117
 msgid " Preferences "
-msgstr ""
+msgstr " Налаштування "
 
 #: vajo_tui.py:1119
 msgid "Space=toggle  Enter/Esc=close"
-msgstr ""
+msgstr "Space=перемкнути  Enter/Esc=закрити"
 
 #: vajo_tui.py:1132
 msgid " (unavailable)"
-msgstr ""
+msgstr " (недоступно)"
 
 #: vajo_tui.py:1157
 msgid "No cache to clear"
-msgstr ""
+msgstr "Немає кешу для очищення"
 
 #: vajo_tui.py:1163
 msgid "--- Running 'luet cleanup' ---"
-msgstr ""
+msgstr "--- Запуск 'luet cleanup' ---"
 
 #: vajo_tui.py:1168
 msgid "Luet cache cleanup finished successfully."
-msgstr ""
+msgstr "Очищення кешу Luet успішно завершено."
 
 #: vajo_tui.py:1172
 msgid "Luet cache cleanup finished with errors."
-msgstr ""
+msgstr "Очищення кешу Luet завершено з помилками."
 
 #: vajo_tui.py:1198
 msgid ""
 "System will be pinned after rollback — upgrades disabled until unpinned."
 msgstr ""
+"Система буде закріплена після відкату — оновлення вимкнено до моменту відкріплення."
 
 #: vajo_tui.py:1203
 msgid "↑↓ select   Enter confirm   Esc cancel"
-msgstr ""
+msgstr "↑↓ вибір   Enter підтвердити   Esc скасувати"
 
 #: vajo_tui.py:1222
 msgid "Roll back is only available on stable repositories."
-msgstr ""
+msgstr "Відкат доступний лише для стабільних репозиторіїв."
 
 #: vajo_tui.py:1234
 msgid "Error"
-msgstr ""
+msgstr "Помилка"
 
 #: vajo_tui.py:1256
 msgid ""
@@ -747,162 +793,170 @@ msgid ""
 "The system will be pinned — updates and repository syncs\n"
 "will be disabled until you unpin via the Roll back menu."
 msgstr ""
+"Відкотитися до {}?\n"
+"\n"
+"  Робочий стіл:   {}\n"
+"  Спільнота:      {}\n"
+"\n"
+"Всі пакети будуть понижені до цього знімка.\n"
+"Систему буде закріплено — оновлення та синхронізація репозиторіїв\n"
+"будуть вимкнені, доки ви не відкріпите через меню «Відкат»."
 
 #: vajo_tui.py:1417
 msgid "Search core error: {}"
-msgstr ""
+msgstr "Помилка ядра пошуку: {}"
 
 #: vajo_tui.py:1418 vajo_tui.py:1457 vajo_core.py:859 vajo_core.py:877
 msgid "Error executing the search command"
-msgstr ""
+msgstr "Помилка виконання команди пошуку"
 
 #: vajo_tui.py:1456
 msgid "Search result processing failed: {}"
-msgstr ""
+msgstr "Помилка обробки результатів пошуку: {}"
 
 #: vajo_tui.py:1479
 msgid "Error removing {}."
-msgstr ""
+msgstr "Помилка видалення {}."
 
 #: vajo_tui.py:1489
 msgid "Error removing package"
-msgstr ""
+msgstr "Помилка видалення пакета"
 
 #: vajo_tui.py:1500
 msgid "Error installing {}."
-msgstr ""
+msgstr "Помилка встановлення {}."
 
 #: vajo_tui.py:1550
 msgid "Error uninstalling: '{}'"
-msgstr ""
+msgstr "Помилка видалення: '{}'"
 
 #: vajo_tui.py:1581
 msgid "Error installing: '{}'"
-msgstr ""
+msgstr "Помилка встановлення: '{}'"
 
 #: vajo_tui.py:1611
 msgid "Package:     {}"
-msgstr ""
+msgstr "Пакет:     {}"
 
 #: vajo_tui.py:1612
 msgid "Version:     {}"
-msgstr ""
+msgstr "Версія:     {}"
 
 #: vajo_tui.py:1613
 msgid "Installed:   {}"
-msgstr ""
+msgstr "Встановлено:   {}"
 
 #: vajo_tui.py:1614
 msgid "Repository:  {}"
-msgstr ""
+msgstr "Репозиторій:  {}"
 
 #: vajo_tui.py:1617
 msgid "License:     {}"
-msgstr ""
+msgstr "Ліцензія:     {}"
 
 #: vajo_tui.py:1621
 msgid "Description: {}"
-msgstr ""
+msgstr "Опис: {}"
 
 #: vajo_tui.py:1625
 msgid "Homepage:    {}"
-msgstr ""
+msgstr "Домашня сторінка:    {}"
 
 #: vajo_tui.py:1627
 msgid "Flathub:     https://flathub.org/apps/{}"
-msgstr ""
+msgstr "Flathub:     https://flathub.org/apps/{}"
 
 #: vajo_tui.py:1629
 msgid "Details for {}"
-msgstr ""
+msgstr "Деталі для {}"
 
 #: vajo_tui.py:1662
 msgid "Protection status:"
-msgstr ""
+msgstr "Статус захисту:"
 
 #: vajo_tui.py:1664
 msgid "Details for {}/{}"
-msgstr ""
+msgstr "Деталі для {}/{}"
 
 #: vajo_tui.py:1711
 msgid "Line {}/{}"
-msgstr ""
+msgstr "Рядок {}/{}"
 
 #: vajo_tui.py:1721
 msgid "remove disabled (has revdeps)"
-msgstr ""
+msgstr "видалення вимкнено (має залежності)"
 
 #: vajo_tui.py:1723
 msgid "remove"
-msgstr ""
+msgstr "видалити"
 
 #: vajo_tui.py:1723
 msgid "install"
-msgstr ""
+msgstr "встановити"
 
 #: vajo_tui.py:1794
 msgid "Required by for {}/{}"
-msgstr ""
+msgstr "Потрібно для {}/{}"
 
 #: vajo_tui.py:1795
 msgid "Loading required by list..."
-msgstr ""
+msgstr "Завантаження списку «потрібно для»..."
 
 #: vajo_tui.py:1827
 msgid "This package is not required by any other package."
-msgstr ""
+msgstr "Цей пакет не потрібен жодному іншому пакету."
 
 #: vajo_tui.py:1829 vajo_tui.py:1962
 msgid "Press any key to close"
-msgstr ""
+msgstr "Натисніть будь-яку клавішу, щоб закрити"
 
 #: vajo_tui.py:1848
 msgid "Required by for {}/{} ({} packages)"
-msgstr ""
+msgstr "Потрібно для {}/{} ({} пакетів)"
 
 #: vajo_tui.py:1857
 msgid "Package {}/{} | Page {}/{}"
-msgstr ""
+msgstr "Пакет {}/{} | Сторінка {}/{}"
 
 #: vajo_tui.py:1866 vajo_tui.py:1996
 msgid "Keys: Up/Down/PgUp/PgDn=scroll | Any other key=close"
-msgstr ""
+msgstr "Клавіші: Up/Down/PgUp/PgDn=прокрутка | Будь-яка інша клавіша=закрити"
 
 #: vajo_tui.py:1920
 msgid "Files for {}/{}"
-msgstr ""
+msgstr "Файли для {}/{}"
 
 #: vajo_tui.py:1921
 msgid "Loading file list..."
-msgstr ""
+msgstr "Завантаження списку файлів..."
 
 #: vajo_tui.py:1960
 msgid "No files found or package not installed"
-msgstr ""
+msgstr "Файлів не знайдено або пакет не встановлено"
 
 #: vajo_tui.py:1978
 msgid "Files for {}/{} ({} files)"
-msgstr ""
+msgstr "Файли для {}/{} ({} файлів)"
 
 #: vajo_tui.py:1987
 msgid "File {}/{} | Page {}/{}"
-msgstr ""
+msgstr "Файл {}/{} | Сторінка {}/{}"
 
 #: vajo_tui.py:2239
 msgid "Starting Vajo: a Luet TUI frontend..."
-msgstr ""
+msgstr "Запуск Vajo: TUI-інтерфейс для Luet..."
 
 #: vajo_tui.py:2245
 msgid "An error occurred outside of curses: {}"
-msgstr ""
+msgstr "Сталася помилка поза curses: {}"
 
 #: vajo_core.py:146
 msgid "Vajo: a Luet Package Manager Frontend"
-msgstr ""
+msgstr "Vajo: інтерфейс менеджера пакетів Luet"
 
 #: vajo_core.py:154
 msgid "© 2023 - 2026 MocaccinoOS. All Rights Reserved"
-msgstr ""
+msgstr "© 2023 - 2026 MocaccinoOS. Всі права захищені"
 
 #: vajo_core.py:171
 msgid ""
@@ -912,56 +966,63 @@ msgid ""
 "Authors: {}\n"
 "(Uses vajo_core.py)"
 msgstr ""
+"Vajo: TUI менеджера пакетів Luet (ncurses)\n"
+"Версія: {}\n"
+"Вебсайт: {}\n"
+"Автори: {}\n"
+"(Використовує vajo_core.py)"
 
 #: vajo_core.py:203
 msgid "No elevation helper available"
-msgstr ""
+msgstr "Помічник підвищення прав недоступний"
 
 #: vajo_core.py:253
 msgid ""
 "\n"
 "Error executing command: {}\n"
 msgstr ""
+"\n"
+"Помилка виконання команди: {}\n"
 
 #: vajo_core.py:365
 msgid "Updating repositories"
-msgstr ""
+msgstr "Оновлення репозиторіїв"
 
 #: vajo_core.py:464
 msgid "luet oscheck failed with return code {}"
-msgstr ""
+msgstr "luet oscheck завершився з кодом помилки {}"
 
 #: vajo_core.py:470
 msgid "Repair sequence started for {} missing packages.\n"
-msgstr ""
+msgstr "Послідовність відновлення розпочата для {} відсутніх пакетів.\n"
 
 #: vajo_core.py:471
 msgid "Found {} missing packages. Starting repair immediately.\n"
-msgstr ""
+msgstr "Знайдено {} відсутніх пакетів. Початок відновлення негайно.\n"
 
 #: vajo_core.py:477
 msgid "Reinstalling {}..."
-msgstr ""
+msgstr "Перевстановлення {}..."
 
 #: vajo_core.py:490
 msgid "Failed reinstalling {}"
-msgstr ""
+msgstr "Не вдалося перевстановити {}"
 
 #: vajo_core.py:501
 msgid "System check failed due to exception"
-msgstr ""
+msgstr "Перевірка системи не вдалася через виключення"
 
 #: vajo_core.py:556
 msgid "Error starting upgrade process"
-msgstr ""
+msgstr "Помилка запуску процесу оновлення"
 
 #: vajo_core.py:564
 msgid "Error during initial upgrade step"
-msgstr ""
+msgstr "Помилка під час початкового етапу оновлення"
 
 #: vajo_core.py:573 vajo_core.py:586
 msgid "System upgrade completed successfully"
-msgstr ""
+msgstr "Оновлення системи успішно завершено"
 
 #: vajo_core.py:576
 msgid ""
@@ -969,99 +1030,102 @@ msgid ""
 "--- Repositories updated, continuing with package upgrade... ---\n"
 "\n"
 msgstr ""
+"\n"
+"--- Репозиторії оновлено, продовження оновлення пакетів... ---\n"
+"\n"
 
 #: vajo_core.py:577
 msgid "Continuing with package upgrade..."
-msgstr ""
+msgstr "Продовження оновлення пакетів..."
 
 #: vajo_core.py:590
 msgid "Error starting second upgrade step"
-msgstr ""
+msgstr "Помилка запуску другого етапу оновлення"
 
 #: vajo_core.py:874
 msgid "Invalid JSON output"
-msgstr ""
+msgstr "Некоректний вивід JSON"
 
 #: vajo_core.py:876
 msgid "Error running search:"
-msgstr ""
+msgstr "Помилка виконання пошуку:"
 
 #: vajo_core.py:1065
 #, python-format
 msgid "%d day ago"
 msgid_plural "%d days ago"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d день тому"
+msgstr[1] "%d дні тому"
+msgstr[2] "%d днів тому"
 
 #: vajo_core.py:1068
 #, python-format
 msgid "%d hour ago"
 msgid_plural "%d hours ago"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d годину тому"
+msgstr[1] "%d години тому"
+msgstr[2] "%d годин тому"
 
 #: vajo_core.py:1071
 #, python-format
 msgid "%d minute ago"
 msgid_plural "%d minutes ago"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "%d хвилину тому"
+msgstr[1] "%d хвилини тому"
+msgstr[2] "%d хвилин тому"
 
 #: vajo_core.py:1073
 msgid "just now"
-msgstr ""
+msgstr "щойно"
 
 #: vajo_core.py:1107 vajo_core.py:1253
 msgid "(none)"
-msgstr ""
+msgstr "(немає)"
 
 #: vajo_core.py:1179
 msgid "No metadata found for this package."
-msgstr ""
+msgstr "Метадані для цього пакета не знайдені."
 
 #: vajo_core.py:1187
 msgid "Installed"
-msgstr ""
+msgstr "Встановлено"
 
 #: vajo_core.py:1188
 msgid "License"
-msgstr ""
+msgstr "Ліцензія"
 
 #: vajo_core.py:1192
 msgid "Description"
-msgstr ""
+msgstr "Опис"
 
 #: vajo_core.py:1193
 msgid "Homepage"
-msgstr ""
+msgstr "Домашня сторінка"
 
 #: vajo_core.py:1204
 msgid "(unknown)"
-msgstr ""
+msgstr "(невідомо)"
 
 #: modules/rollback.py:403
 msgid "Previous"
-msgstr ""
+msgstr "Попередній"
 
 #: modules/rollback.py:403
 msgid "{} versions back"
-msgstr ""
+msgstr "{} версій назад"
 
 #: modules/rollback.py:421
 msgid "~1 year ago"
-msgstr ""
+msgstr "~1 рік тому"
 
 #: modules/rollback.py:423
 msgid "~2 years ago"
-msgstr ""
+msgstr "~2 роки тому"
 
 #: modules/rollback.py:612
 msgid "Failed to write repository configuration"
-msgstr ""
+msgstr "Не вдалося записати конфігурацію репозиторію"
 
 #: modules/rollback.py:643
 msgid "Rollback failed during upgrade"
-msgstr ""
+msgstr "Відкат не вдався під час оновлення"
