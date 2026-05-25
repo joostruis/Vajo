@@ -176,6 +176,18 @@ def _parse_appstream_file(path: str) -> list:
                         rel = releases.find("{*}release")
                     if rel is not None:
                         version = rel.get("version", "")
+                # Category: try categories/category
+                category_name = "Flatpak" # Default fallback if no category is listed
+                categories_node = elem.find("categories")
+                if categories_node is None:
+                    categories_node = elem.find("{*}categories")
+                
+                if categories_node is not None:
+                    cat = categories_node.find("category")
+                    if cat is None:
+                        cat = categories_node.find("{*}category")
+                    if cat is not None and cat.text:
+                        category_name = cat.text.strip()
 
                 if app_id and name:
                     entries.append({
@@ -185,6 +197,7 @@ def _parse_appstream_file(path: str) -> list:
                         "version": version,
                         "license": project_license,
                         "homepage": homepage,
+                        "category": category_name,
                     })
 
                 elem.clear()   # free memory as we go
@@ -385,9 +398,13 @@ class AppstreamIndex:
         """Convert an index entry to the standard package dict shape."""
         app_id    = entry["app_id"]
         installed = app_id in installed_ids
+
+        # Pull the raw string, defaulting to "Flatpak"
+        raw_category = entry.get("category", "Flatpak")
+
         return {
             # ---- fields the GUI reads from the liststore ----
-            "category":              "flatpak",
+            "category":              _(raw_category),
             "name":                  app_id,
             "upgrade_symbol":        "",
             "version":               entry.get("version", ""),
