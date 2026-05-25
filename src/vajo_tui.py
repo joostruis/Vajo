@@ -406,6 +406,8 @@ class LuetTUI:
         self.cache_initialized = False  # Track cache initialization status
         self._index_ready = False
         self._flatpak_ready = False
+        self.filter_query = ""
+        self.filtered_results = []
 
         # Timestamp for periodic cache-menu refresh (matches GUI's 60s interval)
         self._last_cache_menu_refresh = time.time()
@@ -775,7 +777,10 @@ class LuetTUI:
             self.results_win.border()
             self.results_win.attrset(curses.A_NORMAL)
             
-            self.results_win.addstr(0, 2, " " + _(" Results ") + " ", dim_attr)
+            results_label = " " + _(" Results ") + " "
+            if self.filter_query:
+                results_label = " " + _(" Filtered Results: {} ").format(self.filter_query) + " "
+            self.results_win.addstr(0, 2, results_label[:win_w-4], dim_attr)
             
             # Updated header with upgrade symbol column
             header = f"{_('Category'):16.16} {_('Name'):28.28} {'':2} {_('Version'):16.16} {_('Repository'):20.20} {_('Action'):8}"
@@ -789,10 +794,10 @@ class LuetTUI:
             for idx in range(self.visible_results_count):
                 row_idx = idx + self.results_scroll_offset
                 y_in_win = 2 + idx
-                if row_idx >= len(self.results):
+                if row_idx >= len(self.filtered_results):
                     continue
                 
-                pkg = self.results[row_idx]
+                pkg = self.filtered_results[row_idx]
                 upgrade_symbol = pkg.get("upgrade_symbol", "")
                 
                 # Determine action based on installed and upgradeable status
@@ -1441,20 +1446,36 @@ class LuetTUI:
                 })
             self.selected_index = 0
             self.results_scroll_offset = 0
+            self.filter_query = ""
+            self.filtered_results = list(self.results)
             
             self.set_status(_("Found {} results matching '{}'").format(len(self.results), self.search_query))
             self.scheduler.schedule(self.set_status, _("Ready"))
         
         except Exception as e:
             self.results = []
+            self.filtered_results = []
             self.selected_index = 0
             self.results_scroll_offset = 0
             self.append_to_log(_("Search result processing failed: {}").format(e))
             self.set_status(_("Error executing the search command"), error=True)
 
+    def update_filter(self, query):
+        """Update the filtered results list based on the search entry text."""
+        self.filter_query = query.lower().strip()
+        if not self.filter_query:
+            self.filtered_results = list(self.results)
+        else:
+            self.filtered_results = [
+                p for p in self.results
+                if self.filter_query in p["name"].lower() or self.filter_query in p["category"].lower()
+            ]
+        self.selected_index = 0
+        self.results_scroll_offset = 0
+
     def do_install_uninstall_selected(self):
-        if not (0 <= self.selected_index < len(self.results)): return
-        pkg = self.results[self.selected_index]
+        if not (0 <= self.selected_index < len(self.filtered_results)): return
+        pkg = self.filtered_results[self.selected_index]
         full_name = f"{pkg['category']}/{pkg['name']}"
         installed = pkg.get("installed", False)
         protected = pkg.get("protected", False)
@@ -1585,10 +1606,10 @@ class LuetTUI:
             )
 
     def show_details(self):
-        if not (0 <= self.selected_index < len(self.results)):
+        if not (0 <= self.selected_index < len(self.filtered_results)):
             return
 
-        pkg = self.results[self.selected_index]
+        pkg = self.filtered_results[self.selected_index]
 
         category = pkg['category']
         name = pkg['name']
@@ -2149,7 +2170,13 @@ class LuetTUI:
                                     self.run_search(self.search_query)
                                 self.focus = 'list'
                             
-                            elif ch in (curses.KEY_DOWN, 9, 27):
+                            elif ch == 27: # Esc
+                                self.search_query = ""
+                                self.search_cursor_pos = 0
+                                self.update_filter("")
+                                self.focus = 'list'
+
+                            elif ch in (curses.KEY_DOWN, 9):
                                 self.focus = 'list'
                             
                             elif ch == curses.KEY_F9:
@@ -2160,8 +2187,10 @@ class LuetTUI:
                                 if self.search_cursor_pos > 0:
                                     self.search_query = self.search_query[:self.search_cursor_pos - 1] + self.search_query[self.search_cursor_pos:]
                                     self.search_cursor_pos -= 1
+                                    self.update_filter(self.search_query)
                             elif ch == curses.KEY_DC:
                                 self.search_query = self.search_query[:self.search_cursor_pos] + self.search_query[self.search_cursor_pos + 1:]
+                                self.update_filter(self.search_query)
                             elif ch == curses.KEY_LEFT:
                                 self.search_cursor_pos = max(0, self.search_cursor_pos - 1)
                             elif ch == curses.KEY_RIGHT:
@@ -2175,6 +2204,7 @@ class LuetTUI:
                                     s = chr(ch)
                                     self.search_query = self.search_query[:self.search_cursor_pos] + s + self.search_query[self.search_cursor_pos:]
                                     self.search_cursor_pos += 1
+                                    self.update_filter(self.search_query)
                                 except:
                                     pass
                         
@@ -2186,7 +2216,7 @@ class LuetTUI:
                                 self.search_cursor_pos = len(self.search_query)
                             
                             elif ch == curses.KEY_DOWN:
-                                if self.selected_index < len(self.results) - 1:
+                                if self.selected_index < len(self.filtered_results) - 1:
                                     self.selected_index += 1
                             elif ch == curses.KEY_UP:
                                 if self.selected_index > 0:
