@@ -1420,24 +1420,33 @@ class SearchApp(Gtk.Window):
         dlg.run()
         dlg.destroy()
 
-    def _on_refresh_complete(self, new_cache):
-        """Helper called by Core on main thread after post-install refresh"""
-        self.installed_packages_cache = new_cache
-        self.cache_initialized = True
-        self.stop_spinner()
-        
+    def _redisplay_current_view(self, spinner_msg=None):
+        """Re-populate the results list based on the current search state.
+
+        Called after any operation that may change package state (install,
+        uninstall, upgrade, flatpak op). Always runs on the GTK main thread.
+
+        spinner_msg: override the "Searching…" status text, or None for default.
+        """
+        self.clear_liststore()
         if self.last_search == _("installed"):
-            self.clear_liststore()
             self.on_show_installed_packages(None)
         elif self.last_search:
             advanced = self.advanced_search_checkbox.get_active()
             search_cmd = ["luet", "search", "-o", "json", "--files" if advanced else "-q", self.last_search]
-            self.clear_liststore()
-            self.start_spinner(_("Searching again for '{}'...").format(self.last_search))
+            msg = spinner_msg or _("Searching again for '{}'...").format(self.last_search)
+            self.start_spinner(msg)
             self.start_search_thread(search_cmd, advanced)
         else:
             self.set_status_message(_("Ready"))
             self.enable_gui()
+
+    def _on_refresh_complete(self, new_cache):
+        """Helper called by Core on main thread after post-install/uninstall refresh."""
+        self.installed_packages_cache = new_cache
+        self.cache_initialized = True
+        self.stop_spinner()
+        self._redisplay_current_view()
 
     def confirm_install(self, iter_):
         category, name = self.liststore.get_value(iter_, 0), self.liststore.get_value(iter_, 1)
@@ -1530,16 +1539,7 @@ class SearchApp(Gtk.Window):
         Called from a background thread (the run_realtime completion callback).
         """
         def on_main_thread():
-            self.clear_liststore()
-            if self.last_search == _("installed"):
-                self.on_show_installed_packages(None)
-            elif self.last_search:
-                advanced = self.advanced_search_checkbox.get_active()
-                search_cmd = ["luet", "search", "-o", "json", "-q", self.last_search]
-                self.start_spinner(_("Refreshing results..."))
-                self.start_search_thread(search_cmd, advanced)
-            else:
-                self.enable_gui()
+            self._redisplay_current_view(spinner_msg=_("Refreshing results..."))
 
         if self.appstream_index:
             self.appstream_index.refresh_installed(on_done=lambda: GLib.idle_add(on_main_thread))
@@ -1828,19 +1828,8 @@ class SearchApp(Gtk.Window):
                 self.refresh_installed_packages_cache()
                 self.set_status_message(message)
                 self.update_sync_info_label()
-                
-                # 2. FIX: Re-run search to update the list with new cache data
-                if self.last_search == _("installed"):
-                    self.clear_liststore()
-                    self.on_show_installed_packages(None)
-                elif self.last_search:
-                    advanced = self.advanced_search_checkbox.get_active()
-                    search_cmd = ["luet", "search", "-o", "json", "--files" if advanced else "-q", self.last_search]
-                    self.clear_liststore()
-                    self.start_spinner(_("Searching for {}...").format(self.last_search))
-                    self.start_search_thread(search_cmd, advanced)
-                else:
-                    self.enable_gui()
+                # 2. Re-run search to update the list with new cache data
+                self._redisplay_current_view(spinner_msg=_("Searching for {}...").format(self.last_search))
             else:
                 self.set_status_message(_("Error during system upgrade") if message.startswith("System") else message)
             self.enable_gui()
