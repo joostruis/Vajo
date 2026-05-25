@@ -261,18 +261,36 @@ class AppstreamIndex:
         self._ready_event   = threading.Event()
 
     def build_async(self, on_ready_callback=None):
-        """
-        Walk the appstream cache files and run `flatpak list` in a background
-        thread.  Calls on_ready_callback() (no args) when done, if provided.
-        """
         def worker():
+            import subprocess
             index = {}
-            paths = _find_appstream_files()
+            
+            # --- 1. SILENT FLATHUB INITIALIZATION ---
+            try:
+                # Check if flathub exists
+                res = subprocess.run(["flatpak", "remotes", "--columns=name"], capture_output=True, text=True)
+                if "flathub" not in res.stdout:
+                    print("flatpak: Flathub remote missing. Adding for current user silently...")
+                    # Using --user prevents silent background threads from hanging on sudo/polkit prompts
+                    subprocess.run(
+                        ["flatpak", "remote-add", "--user", "--if-not-exists", "flathub", "https://dl.flathub.org/repo/flathub.flatpakrepo"],
+                        capture_output=True
+                    )
+            except Exception as e:
+                print(f"flatpak: Failed to add Flathub remote: {e}")
 
+            # --- 2. SILENT APPSTREAM REFRESH ---
+            paths = _find_appstream_files()
             if not paths:
-                print("flatpak: no appstream cache found — "
-                      "run 'flatpak update' to populate it")
-            else:
+                print("flatpak: AppStream cache missing. Fetching silently...")
+                try:
+                    subprocess.run(["flatpak", "update", "--appstream"], capture_output=True)
+                    paths = _find_appstream_files()
+                except Exception as e:
+                    print(f"flatpak: Failed to fetch AppStream cache: {e}")
+
+            # --- 3. STANDARD PARSING ---
+            if paths:
                 for path in paths:
                     for entry in _parse_appstream_file(path):
                         app_id = entry["app_id"]
