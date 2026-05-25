@@ -20,7 +20,7 @@ except ImportError:
     pkg_version = None # Create a fallback
 
 gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk, GLib, Gdk, Pango, Gio
+from gi.repository import Gtk, GLib, Gdk, Pango, Gio, GdkPixbuf
 
 GLib.set_prgname('vajo')
 
@@ -302,6 +302,25 @@ class PackageDetailsPopup(Gtk.Window):
                 add_right(next_right_row, _("License:"), lic_label)
                 next_right_row += 1
 
+            # Screenshots for Flatpaks
+            screenshots = package_info.get("screenshots", [])
+            if screenshots:
+                self.screenshots_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+                self.screenshots_box.set_margin_top(10)
+
+                self.screenshots_sw = Gtk.ScrolledWindow()
+                self.screenshots_sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
+                self.screenshots_sw.set_min_content_height(220)
+                
+                self.screenshots_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+                self.screenshots_sw.add(self.screenshots_hbox)
+                self.screenshots_box.pack_start(self.screenshots_sw, True, True, 0)
+                
+                main_box.pack_start(self.screenshots_box, True, True, 0)
+                
+                # Load screenshots in background
+                threading.Thread(target=self.load_screenshots, args=(screenshots,), daemon=True).start()
+
         else:
             # --- Luet details: load definition.yaml as before ---
             definition_data = self.load_definition_yaml(repository, category, name, version)
@@ -420,6 +439,45 @@ class PackageDetailsPopup(Gtk.Window):
             self.load_required_by_info()
 
     
+    def load_screenshots(self, urls):
+        import urllib.request
+        import io
+
+        for url in urls:
+            try:
+                # Some AppStream files might have relative URLs or just the filename
+                # If it doesn't start with http, we might need to skip or handle it.
+                # Flathub usually provides full URLs.
+                if not url.startswith("http"):
+                    continue
+
+                # Fetch image data
+                with urllib.request.urlopen(url, timeout=10) as response:
+                    data = response.read()
+                
+                # Load into Pixbuf
+                loader = GdkPixbuf.PixbufLoader()
+                loader.write(data)
+                loader.close()
+                pixbuf = loader.get_pixbuf()
+                if not pixbuf:
+                    continue
+                
+                # Resize if too large (keep aspect ratio)
+                h = 200
+                w = int(pixbuf.get_width() * (h / pixbuf.get_height()))
+                pixbuf = pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
+
+                GLib.idle_add(self.add_screenshot_to_ui, pixbuf)
+            except Exception:
+                pass
+
+    def add_screenshot_to_ui(self, pixbuf):
+        image = Gtk.Image.new_from_pixbuf(pixbuf)
+        self.screenshots_hbox.pack_start(image, False, False, 0)
+        image.show()
+        return False # GLib.idle_add callback should return False to not repeat
+
     def on_action_clicked(self, button):
         """Close the window and trigger the install/remove action."""
         if self.on_action_callback:
@@ -619,6 +677,7 @@ class SearchApp(Gtk.Window):
         self.installed_packages_cache = {}
         self.cache_initialized = False
         self._index_ready = False
+        self._flatpak_ready = False
 
         # Description index for treefs-based description search
         self.desc_index = DescriptionIndex()
@@ -651,7 +710,9 @@ class SearchApp(Gtk.Window):
         # Start building the Flatpak appstream index in the background (no-op if disabled)
         if self.appstream_index is not None:
             Debug.log("GUI: starting appstream index build")
-            self.appstream_index.build_async()
+            self.appstream_index.build_async(on_ready_callback=self._on_flatpak_ready_callback)
+        else:
+            self._flatpak_ready = True
     
     def refresh_installed_packages_cache_async(self):
         """Refresh the cached list of installed packages asynchronously"""
@@ -682,9 +743,18 @@ class SearchApp(Gtk.Window):
         self._index_ready = True
         self._check_startup_complete()
 
+    def _on_flatpak_ready_callback(self):
+        """Called from background thread when flatpak index is built."""
+        Debug.log("GUI: flatpak index ready")
+        GLib.idle_add(self._on_flatpak_ready_main)
+
+    def _on_flatpak_ready_main(self):
+        self._flatpak_ready = True
+        self._check_startup_complete()
+
     def _check_startup_complete(self):
         """Enable the GUI only once both the cache and description index are ready."""
-        if self.cache_initialized and self._index_ready:
+        if self.cache_initialized and self._index_ready and self._flatpak_ready:
             Debug.log("GUI: startup complete, enabling GUI")
             self.set_status_message(_("Ready"))
             self.enable_gui()
@@ -1025,24 +1095,7 @@ class SearchApp(Gtk.Window):
 
         # Append installed Flatpak packages when --flatpak is active
         if self.appstream_index is not None:
-            with self.appstream_index._lock:
-                installed_ids = set(self.appstream_index._installed_ids)
-                index = dict(self.appstream_index._index)
-            for app_id in sorted(installed_ids):
-                entry = index.get(app_id, {})
-                packages.append({
-                    "category":              "flatpak",
-                    "name":                  app_id,
-                    "version":               entry.get("version", ""),
-                    "repository":            "Flathub",
-                    "is_actually_installed": True,
-                    "protected":             False,
-                    "upgradeable":           False,
-                    "upgrade_symbol":        "",
-                    "description":           entry.get("summary", ""),
-                    "_flatpak_label":        entry.get("name", app_id),
-                    "_flatpak":              True,
-                })
+            packages.extend(self.appstream_index.get_installed_packages())
         self.last_search = _("installed")
         self.search_entry.set_text("")
         self.clear_liststore()
@@ -1278,6 +1331,7 @@ class SearchApp(Gtk.Window):
                         package_info["description"] = entry.get("summary", "")
                         package_info["license"] = entry.get("license", "")
                         package_info["homepage"] = entry.get("homepage", "")
+                        package_info["screenshots"] = entry.get("screenshots", [])
                 else:
                     package_info["description"] = ""
             else:

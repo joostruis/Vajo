@@ -160,11 +160,28 @@ def _parse_appstream_file(path: str) -> list:
                 summary = _text_default(elem, "summary")
                 project_license = _text_default(elem, "project_license")
                 homepage = ""
+                screenshots = []
                 for child in elem:
                     local = child.tag.split("}")[-1] if "}" in child.tag else child.tag
                     if local == "url" and child.get("type") == "homepage" and child.text:
                         homepage = child.text.strip()
-                        break
+                    elif local == "screenshots":
+                        for ss in child:
+                            ss_local = ss.tag.split("}")[-1] if "}" in ss.tag else ss.tag
+                            if ss_local == "screenshot":
+                                best_img = None
+                                for img in ss:
+                                    img_local = img.tag.split("}")[-1] if "}" in img.tag else img.tag
+                                    if img_local == "image" and img.text:
+                                        img_url = img.text.strip()
+                                        if img.get("type") == "source":
+                                            best_img = img_url
+                                            break # Take source and stop
+                                        if best_img is None:
+                                            best_img = img_url
+                                if best_img:
+                                    screenshots.append(best_img)
+
                 # Version: try releases/release/@version first
                 version = ""
                 releases = elem.find("releases")
@@ -198,6 +215,7 @@ def _parse_appstream_file(path: str) -> list:
                         "license": project_license,
                         "homepage": homepage,
                         "category": category_name,
+                        "screenshots": screenshots,
                     })
 
                 elem.clear()   # free memory as we go
@@ -275,51 +293,57 @@ class AppstreamIndex:
 
     def build_async(self, on_ready_callback=None):
         def worker():
-            import subprocess
-            index = {}
-            
-            # --- 1. SILENT FLATHUB INITIALIZATION ---
             try:
-                # Check if flathub exists
-                res = subprocess.run(["flatpak", "remotes", "--columns=name"], capture_output=True, text=True)
-                if "flathub" not in res.stdout:
-                    print("flatpak: Flathub remote missing. Adding for current user silently...")
-                    # Using --user prevents silent background threads from hanging on sudo/polkit prompts
-                    subprocess.run(
-                        ["flatpak", "remote-add", "--user", "--if-not-exists", "flathub", "https://dl.flathub.org/repo/flathub.flatpakrepo"],
-                        capture_output=True
-                    )
-            except Exception as e:
-                print(f"flatpak: Failed to add Flathub remote: {e}")
-
-            # --- 2. SILENT APPSTREAM REFRESH ---
-            paths = _find_appstream_files()
-            if not paths:
-                print("flatpak: AppStream cache missing. Fetching silently...")
+                import subprocess
+                index = {}
+                
+                # --- 1. SILENT FLATHUB INITIALIZATION ---
                 try:
-                    subprocess.run(["flatpak", "update", "--appstream"], capture_output=True)
-                    paths = _find_appstream_files()
+                    # Check if flathub exists
+                    res = subprocess.run(["flatpak", "remotes", "--columns=name"], capture_output=True, text=True)
+                    if "flathub" not in res.stdout:
+                        print("flatpak: Flathub remote missing. Adding for current user silently...")
+                        # Using --user prevents silent background threads from hanging on sudo/polkit prompts
+                        subprocess.run(
+                            ["flatpak", "remote-add", "--user", "--if-not-exists", "flathub", "https://dl.flathub.org/repo/flathub.flatpakrepo"],
+                            capture_output=True
+                        )
                 except Exception as e:
-                    print(f"flatpak: Failed to fetch AppStream cache: {e}")
+                    print(f"flatpak: Failed to add Flathub remote: {e}")
 
-            # --- 3. STANDARD PARSING ---
-            if paths:
-                for path in paths:
-                    for entry in _parse_appstream_file(path):
-                        app_id = entry["app_id"]
-                        if app_id not in index:
-                            index[app_id] = entry
+                # --- 2. SILENT APPSTREAM REFRESH ---
+                paths = _find_appstream_files()
+                if not paths:
+                    print("flatpak: AppStream cache missing. Fetching silently...")
+                    try:
+                        subprocess.run(["flatpak", "update", "--appstream"], capture_output=True)
+                        paths = _find_appstream_files()
+                    except Exception as e:
+                        print(f"flatpak: Failed to fetch AppStream cache: {e}")
 
-            installed_ids = _get_installed_ids()
+                # --- 3. STANDARD PARSING ---
+                if paths:
+                    for path in paths:
+                        for entry in _parse_appstream_file(path):
+                            app_id = entry["app_id"]
+                            if app_id not in index:
+                                index[app_id] = entry
 
-            with self._lock:
-                self._index         = index
-                self._installed_ids = installed_ids
-                self._ready         = True
-            self._ready_event.set()
+                installed_ids = _get_installed_ids()
 
-            if on_ready_callback:
-                on_ready_callback()
+                with self._lock:
+                    self._index         = index
+                    self._installed_ids = installed_ids
+                    self._ready         = True
+                self._ready_event.set()
+            except Exception as e:
+                print(f"flatpak: unexpected error in build_async worker: {e}")
+                with self._lock:
+                    self._ready = True
+                self._ready_event.set()
+            finally:
+                if on_ready_callback:
+                    on_ready_callback()
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -341,6 +365,36 @@ class AppstreamIndex:
     def is_ready(self) -> bool:
         with self._lock:
             return self._ready
+
+    def get_installed_packages(self) -> list:
+        """Return all installed Flatpak packages in standard GUI shape."""
+        with self._lock:
+            if not self._ready:
+                return []
+            installed_ids = self._installed_ids
+            # We want to show everything that is installed, even if it's a child/plugin
+            results = []
+            for app_id in installed_ids:
+                entry = self._index.get(app_id)
+                if entry:
+                    results.append(self._to_pkg(entry, installed_ids))
+                else:
+                    # Not in appstream index? Still show it as a basic entry
+                    results.append({
+                        "category":              _("Flatpak"),
+                        "name":                  app_id,
+                        "upgrade_symbol":        "",
+                        "version":               "",
+                        "repository":            "Flathub",
+                        "is_actually_installed": True,
+                        "installed_version":     "",
+                        "available_version":     "",
+                        "protected":             False,
+                        "description":           "",
+                        "_flatpak_label":        app_id,
+                        "_flatpak":              True,
+                    })
+            return results
 
     def search(self, query: str) -> list:
         """
@@ -418,6 +472,7 @@ class AppstreamIndex:
             "description":           entry.get("summary", ""),
             "license":               entry.get("license", ""),
             "homepage":              entry.get("homepage", ""),
+            "screenshots":           entry.get("screenshots", []),
             "_flatpak_label":        entry["name"],
             "_flatpak":              True,
         }

@@ -405,6 +405,7 @@ class LuetTUI:
         self.installed_packages_cache = {}
         self.cache_initialized = False  # Track cache initialization status
         self._index_ready = False
+        self._flatpak_ready = False
 
         # Timestamp for periodic cache-menu refresh (matches GUI's 60s interval)
         self._last_cache_menu_refresh = time.time()
@@ -435,7 +436,9 @@ class LuetTUI:
         # Start building the Flatpak appstream index in the background (no-op if disabled)
         if self.appstream_index is not None:
             Debug.log("TUI: starting appstream index build")
-            self.appstream_index.build_async()
+            self.appstream_index.build_async(on_ready_callback=self._on_flatpak_ready_callback)
+        else:
+            self._flatpak_ready = True
 
     def cleanup(self):
         """Clean up resources before exit"""
@@ -495,9 +498,18 @@ class LuetTUI:
         self._index_ready = True
         self._check_startup_complete()
 
+    def _on_flatpak_ready_callback(self):
+        """Called from background thread when flatpak index is built."""
+        Debug.log("TUI: flatpak index ready")
+        self.scheduler.schedule(self._on_flatpak_ready_main)
+
+    def _on_flatpak_ready_main(self):
+        self._flatpak_ready = True
+        self._check_startup_complete()
+
     def _check_startup_complete(self):
-        """Set status to Ready only once both cache and description index are ready."""
-        if self.cache_initialized and self._index_ready:
+        """Set status to Ready only once all caches and indices are ready."""
+        if self.cache_initialized and self._index_ready and self._flatpak_ready:
             Debug.log("TUI: startup complete")
             self.set_status(_("Ready"))
 
@@ -1335,24 +1347,8 @@ class LuetTUI:
 
         # Append installed Flatpak packages when --flatpak is active
         if self.appstream_index is not None:
-            with self.appstream_index._lock:
-                installed_ids = set(self.appstream_index._installed_ids)
-                index = dict(self.appstream_index._index)
-            for app_id in sorted(installed_ids):
-                entry = index.get(app_id, {})
-                packages.append({
-                    "category":              "flatpak",
-                    "name":                  app_id,
-                    "version":               entry.get("version", ""),
-                    "repository":            "Flathub",
-                    "is_actually_installed": True,
-                    "installed":             True,
-                    "protected":             False,
-                    "upgrade_symbol":        "",
-                    "description":           entry.get("summary", ""),
-                    "_flatpak_label":        entry.get("name", app_id),
-                    "_flatpak":              True,
-                })
+            packages.extend(self.appstream_index.get_installed_packages())
+
         self.search_query = _("installed")
         self.on_search_finished({"packages": packages})
 
