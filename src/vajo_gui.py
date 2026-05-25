@@ -1048,22 +1048,20 @@ class SearchApp(Gtk.Window):
     def on_expander_leave(self, widget, event):
         self.set_cursor(None)
 
+    def _set_gui_sensitive(self, sensitive):
+        self.search_entry.set_sensitive(sensitive)
+        self.advanced_search_checkbox.set_sensitive(sensitive)
+        self.search_button.set_sensitive(sensitive)
+        self.treeview.set_sensitive(sensitive)
+        self.treeview.set_has_tooltip(sensitive)
+        for item in self.menu_bar.get_children():
+            if isinstance(item, Gtk.MenuItem): item.set_sensitive(sensitive)
+
     def disable_gui(self):
-        self.search_entry.set_sensitive(False)
-        self.advanced_search_checkbox.set_sensitive(False)
-        self.search_button.set_sensitive(False)
-        self.treeview.set_sensitive(False)
-        self.treeview.set_has_tooltip(False)
-        for item in self.menu_bar.get_children():
-            if isinstance(item, Gtk.MenuItem): item.set_sensitive(False)
+        self._set_gui_sensitive(False)
+
     def enable_gui(self):
-        self.search_entry.set_sensitive(True)
-        self.advanced_search_checkbox.set_sensitive(True)
-        self.search_button.set_sensitive(True)
-        self.treeview.set_sensitive(True)
-        self.treeview.set_has_tooltip(True)
-        for item in self.menu_bar.get_children():
-            if isinstance(item, Gtk.MenuItem): item.set_sensitive(True)
+        self._set_gui_sensitive(True)
 
     def on_show_installed_packages(self, widget):
         """Show all installed packages as search results using the cache."""
