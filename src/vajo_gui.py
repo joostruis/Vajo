@@ -1032,8 +1032,6 @@ class SearchApp(Gtk.Window):
 
         self.results_filter_entry.set_no_show_all(True)
         self.results_filter_entry.hide()
-        self.output_expander.set_no_show_all(True)
-        self.output_expander.hide()
         self.add(main_vbox)
 
         # --- Timers + UI Refresh ---
@@ -1486,7 +1484,7 @@ class SearchApp(Gtk.Window):
             PackageOperations.run_installation(self.command_runner.run_realtime, self.append_to_log, on_install_done, install_cmd)
         except Exception as e:
             print("Exception launching installation thread:", e)
-            self.set_status_message(_("Error installing package")); self.output_expander.hide(); self.enable_gui(); self.stop_spinner()
+            self.set_status_message(_("Error installing package")); self.enable_gui(); self.stop_spinner()
 
     def confirm_uninstall(self, iter_):
         category, name = self.liststore.get_value(iter_, 0), self.liststore.get_value(iter_, 1)
@@ -1531,7 +1529,7 @@ class SearchApp(Gtk.Window):
             )
         except Exception as e:
             print("Exception launching uninstallation thread:", e)
-            self.set_status_message(_("Error uninstalling package")); self.output_expander.hide(); self.enable_gui(); self.stop_spinner()
+            self.set_status_message(_("Error uninstalling package")); self.enable_gui(); self.stop_spinner()
 
     def _refresh_and_redisplay(self):
         """
@@ -1610,7 +1608,6 @@ class SearchApp(Gtk.Window):
         except Exception as e:
             print("Exception launching flatpak operation:", e)
             self.set_status_message(err_msg)
-            self.output_expander.hide()
             self.enable_gui()
             self.stop_spinner()
 
