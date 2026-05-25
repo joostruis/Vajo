@@ -263,43 +263,20 @@ class PackageDetailsPopup(Gtk.Window):
             # --- Flatpak details: use appstream data, no luet API calls ---
             next_right_row = 0
 
-            # Project homepage link with Flathub fallback
-            homepage_url = package_info.get("homepage", "")
-            if not homepage_url:
-                homepage_url = "https://flathub.org/apps/{}".format(name)
-            uri_label = Gtk.Label()
-            escaped_url = GLib.markup_escape_text(homepage_url)
-            uri_label.set_markup('<a href="{}">{}</a>'.format(escaped_url, escaped_url))
-            uri_label.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
-            # Make sure we pass the dynamic URL to the lambda function!
-            uri_label.connect("button-press-event", lambda w, e, url=homepage_url: webbrowser.open(url))
-            uri_label.connect("enter-notify-event", self.on_hover_cursor)
-            uri_label.connect("leave-notify-event", self.on_leave_cursor)
-            add_left(3, "Homepage:", uri_label, top_align=True)
+            homepage_url = package_info.get("homepage", "") or "https://flathub.org/apps/{}".format(name)
+            add_left(3, "Homepage:", self._make_uri_label(homepage_url), top_align=True)
 
-            repo_label = Gtk.Label(label=repository)
-            repo_label.set_xalign(0)
-            add_right(next_right_row, _("Repository:"), repo_label)
+            add_right(next_right_row, _("Repository:"), self._make_detail_label(repository))
             next_right_row += 1
 
             description = package_info.get("description", "")
             if description:
-                desc_label = Gtk.Label(label=description)
-                desc_label.set_line_wrap(True)
-                desc_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-                desc_label.set_xalign(0)
-                desc_label.set_max_width_chars(40)
-                add_right(next_right_row, _("Description:"), desc_label)
+                add_right(next_right_row, _("Description:"), self._make_detail_label(description))
                 next_right_row += 1
-                
+
             license_ = package_info.get("license", "")
             if license_:
-                lic_label = Gtk.Label(label=license_)
-                lic_label.set_xalign(0)
-                lic_label.set_line_wrap(True)
-                lic_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-                lic_label.set_max_width_chars(40)
-                add_right(next_right_row, _("License:"), lic_label)
+                add_right(next_right_row, _("License:"), self._make_detail_label(license_))
                 next_right_row += 1
 
             # Screenshots for Flatpaks
@@ -311,18 +288,18 @@ class PackageDetailsPopup(Gtk.Window):
                 self.screenshots_sw = Gtk.ScrolledWindow()
                 self.screenshots_sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
                 self.screenshots_sw.set_min_content_height(220)
-                
+
                 self.screenshots_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
                 self.screenshots_sw.add(self.screenshots_hbox)
                 self.screenshots_box.pack_start(self.screenshots_sw, True, True, 0)
-                
+
                 main_box.pack_start(self.screenshots_box, True, True, 0)
-                
+
                 # Load screenshots in background
                 threading.Thread(target=self.load_screenshots, args=(screenshots,), daemon=True).start()
 
         else:
-            # --- Luet details: load definition.yaml as before ---
+            # --- Luet details: load definition.yaml ---
             definition_data = self.load_definition_yaml(repository, category, name, version)
             if definition_data:
                 description = definition_data.get("description", "")
@@ -334,37 +311,18 @@ class PackageDetailsPopup(Gtk.Window):
                     uri = uri[0] if uri else ""
 
                 if uri:
-                    uri_label = Gtk.Label()
-                    escaped_uri = GLib.markup_escape_text(uri)
-                    uri_label.set_markup('<a href="{}">{}</a>'.format(escaped_uri, escaped_uri))
-                    uri_label.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
-                    uri_label.connect("button-press-event", lambda w, e: webbrowser.open(uri))
-                    uri_label.connect("enter-notify-event", self.on_hover_cursor)
-                    uri_label.connect("leave-notify-event", self.on_leave_cursor)
-                    add_left(3, "Homepage:", uri_label, top_align=True)
+                    add_left(3, "Homepage:", self._make_uri_label(uri), top_align=True)
 
                 next_right_row = 0
                 if repository:
-                    repo_label = Gtk.Label(label=repository)
-                    repo_label.set_xalign(0)
-                    add_right(next_right_row, _("Repository:"), repo_label)
+                    add_right(next_right_row, _("Repository:"), self._make_detail_label(repository))
                     next_right_row += 1
                 if description:
-                    desc_label = Gtk.Label(label=description)
-                    desc_label.set_line_wrap(True)
-                    desc_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-                    desc_label.set_xalign(0)
-                    desc_label.set_max_width_chars(40)
-                    add_right(next_right_row, _("Description:"), desc_label)
+                    add_right(next_right_row, _("Description:"), self._make_detail_label(description))
                     next_right_row += 1
                 if license_:
-                    lic_label = Gtk.Label(label=license_)
-                    lic_label.set_xalign(0)
-                    lic_label.set_line_wrap(True)
-                    lic_label.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
-                    lic_label.set_max_width_chars(40)
-                    add_right(next_right_row, _("License:"), lic_label)
-                next_right_row += 1
+                    add_right(next_right_row, _("License:"), self._make_detail_label(license_))
+                    next_right_row += 1
 
         hbox.pack_start(left_grid, True, True, 0)
         hbox.pack_start(right_grid, True, True, 0)
@@ -439,6 +397,30 @@ class PackageDetailsPopup(Gtk.Window):
             self.load_required_by_info()
 
     
+    def _make_detail_label(self, text):
+        """Return a wrapped, left-aligned Gtk.Label for detail fields."""
+        lbl = Gtk.Label(label=text)
+        lbl.set_xalign(0)
+        lbl.set_line_wrap(True)
+        lbl.set_line_wrap_mode(Pango.WrapMode.WORD_CHAR)
+        lbl.set_max_width_chars(40)
+        return lbl
+
+    def _make_uri_label(self, url):
+        """Return a clickable hyperlink label that opens url in the browser."""
+        lbl = Gtk.Label()
+        escaped = GLib.markup_escape_text(url)
+        lbl.set_markup('<a href="{}">{}</a>'.format(escaped, escaped))
+        lbl.add_events(
+            Gdk.EventMask.BUTTON_PRESS_MASK |
+            Gdk.EventMask.ENTER_NOTIFY_MASK |
+            Gdk.EventMask.LEAVE_NOTIFY_MASK
+        )
+        lbl.connect("button-press-event", lambda w, e, u=url: webbrowser.open(u))
+        lbl.connect("enter-notify-event", self.on_hover_cursor)
+        lbl.connect("leave-notify-event", self.on_leave_cursor)
+        return lbl
+
     def load_screenshots(self, urls):
         import urllib.request
         import io
