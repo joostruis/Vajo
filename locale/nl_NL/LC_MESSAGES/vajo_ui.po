@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-25 12:43+0200\n"
-"PO-Revision-Date: 2026-05-24 22:27+0200\n"
+"PO-Revision-Date: 2026-05-25 13:22+0200\n"
 "Last-Translator: \n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
@@ -798,13 +798,13 @@ msgid ""
 "The system will be pinned — updates and repository syncs\n"
 "will be disabled until you unpin via the Roll back menu."
 msgstr ""
-"Terugrollen naar {}?\r\n"
-"\r\n"
-"  Desktop:   {}\r\n"
-"  Community: {}\r\n"
-"\r\n"
-"Alle pakketten worden gedowngraded naar deze snapshot.\r\n"
-"Het systeem wordt vastgezet — updates en repository-synchronisaties\r\n"
+"Terugrollen naar {}?\n"
+"\n"
+"  Desktop:   {}\n"
+"  Community: {}\n"
+"\n"
+"Alle pakketten worden gedowngraded naar deze snapshot.\n"
+"Het systeem wordt vastgezet — updates en repository-synchronisaties\n"
 "worden uitgeschakeld totdat je het weer loskoppelt via het menu "
 "“Terugrollen”."
 
@@ -857,18 +857,16 @@ msgid "Repository:  {}"
 msgstr "Pakketbron:  {}"
 
 #: vajo_tui.py:1617
-#, fuzzy
 msgid "License:     {}"
-msgstr "Licentie:"
+msgstr "Licentie:     {}"
 
 #: vajo_tui.py:1621
 msgid "Description: {}"
 msgstr "Omschrijving: {}"
 
 #: vajo_tui.py:1625
-#, fuzzy
 msgid "Homepage:    {}"
-msgstr "Homepage"
+msgstr "Homepage    {}"
 
 #: vajo_tui.py:1627
 msgid "Flathub:     https://flathub.org/apps/{}"
