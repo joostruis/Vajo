@@ -1699,31 +1699,21 @@ class SearchApp(Gtk.Window):
             elif message != _("Ready") and message != _("No results"): style_context.add_class("dimmed")
 
     def append_to_log(self, text):
-        """
-        Appends text to the output log and ensures it's scrolled to the end.
-        FIX 5: Uses scroll_to_mark to fix Gtk:ERROR:gtk_text_view_validate_onscreen assertion.
-        """
-        # This is already running via GLib.idle_add, so it's on the main thread.
-        # However, we must wrap it in GLib.idle_add again in case it's called
-        # directly without being scheduled from a separate thread context.
-        GLib.idle_add(self._append_to_log_in_gui_thread, text)
+        """Schedule a log line to be appended on the GTK main thread.
 
-    def _append_to_log_in_gui_thread(self, text):
+        Always called from a background thread (run_realtime callbacks), so
+        GLib.idle_add is the correct hand-off. Uses scroll_to_mark to avoid
+        the gtk_text_view_validate_onscreen assertion that scroll_to_iter triggers.
+        """
+        GLib.idle_add(self._do_append_to_log, text)
+
+    def _do_append_to_log(self, text):
         buf = self.output_textview.get_buffer()
-        
-        # 1. Insert text to the end of the buffer
-        # This mutation invalidates iterators.
-        buf.insert(buf.get_end_iter(), text, -1) 
-
-        # 2. Create a temporary mark at the new end position (Mark is an anchor and is safe).
+        buf.insert(buf.get_end_iter(), text, -1)
         mark = buf.create_mark(None, buf.get_end_iter(), False)
-        
-        # 3. Use the canonical scroll_to_mark API.
         self.output_textview.scroll_to_mark(mark, 0.0, False, 0.0, 0.0)
-        
-        # 4. Immediately delete the temporary mark
         buf.delete_mark(mark)
-        return False # Required for GLib.idle_add
+        return False  # do not repeat
 
     # ---------------------------------
     # Menu Action Handlers (GUI)
@@ -2104,7 +2094,7 @@ class SearchApp(Gtk.Window):
             self.start_spinner(_("Rolling back..."))
 
             def on_log(line):
-                GLib.idle_add(self.append_to_log, line)
+                self.append_to_log(line)
 
             def on_finish(returncode, message):
                 GLib.idle_add(self._on_rollback_finished, returncode, message)
