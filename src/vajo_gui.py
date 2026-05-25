@@ -646,7 +646,6 @@ class SearchApp(Gtk.Window):
         self.inhibit_cookie = None
         self.last_search = ""
         self.search_thread = None
-        self.lock = threading.Lock()
         self.status_message_lock = threading.Lock()
         self.cache_lock = threading.Lock()
         self.highlighted_row_path = None
@@ -1058,20 +1057,13 @@ class SearchApp(Gtk.Window):
         for item in self.menu_bar.get_children():
             if isinstance(item, Gtk.MenuItem): item.set_sensitive(False)
     def enable_gui(self):
-        with self.lock:
-            self.search_entry.set_sensitive(True)
-            self.advanced_search_checkbox.set_sensitive(True)
-            self.search_button.set_sensitive(True)
-            self.treeview.set_sensitive(True)
-            self.treeview.set_has_tooltip(True)
-            for item in self.menu_bar.get_children():
-                if isinstance(item, Gtk.MenuItem): item.set_sensitive(True)
-            GLib.idle_add(self.enable_gui_after_search)
-    def enable_gui_after_search(self):
         self.search_entry.set_sensitive(True)
+        self.advanced_search_checkbox.set_sensitive(True)
         self.search_button.set_sensitive(True)
         self.treeview.set_sensitive(True)
         self.treeview.set_has_tooltip(True)
+        for item in self.menu_bar.get_children():
+            if isinstance(item, Gtk.MenuItem): item.set_sensitive(True)
 
     def on_show_installed_packages(self, widget):
         """Show all installed packages as search results using the cache."""
