@@ -1158,9 +1158,8 @@ class SearchApp(Gtk.Window):
             # Merge description matches from local treefs index
             # Wait briefly if the index is still being built
             if not self.desc_index.is_ready:
-                import time as _time
                 for _ in range(20):  # wait up to 2 seconds
-                    _time.sleep(0.1)
+                    time.sleep(0.1)
                     if self.desc_index.is_ready:
                         break
 
