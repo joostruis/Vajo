@@ -889,6 +889,11 @@ class SearchApp(Gtk.Window):
         search_box.pack_start(self.advanced_search_checkbox, False, False, 0)
         search_box.pack_start(self.search_button, False, False, 0)
 
+        # --- Results Filter Bar ---
+        self.results_filter_entry = Gtk.SearchEntry()
+        self.results_filter_entry.set_placeholder_text(_("Filter results..."))
+        self.results_filter_entry.connect("changed", self.on_results_filter_changed)
+
         # --- TreeView (Results Table) ---
         self.treeview = Gtk.TreeView()
 
@@ -896,7 +901,12 @@ class SearchApp(Gtk.Window):
         # 0: Category | 1: Name | 2: Upgrade Symbol | 3: Version | 4: Repository |
         # 5: Action ID | 6: Action Text | 7: Details | 8: Highlight Color | 9: Description (tooltip)
         self.liststore = Gtk.ListStore(str, str, str, str, str, int, str, str, str, str)
-        self.treeview.set_model(self.liststore)
+        
+        # Wrap liststore in a filter model
+        self.filter_model = self.liststore.filter_new()
+        self.filter_model.set_visible_func(self.results_filter_func)
+        
+        self.treeview.set_model(self.filter_model)
 
         # --- Columns ---
         columns = [
@@ -1016,9 +1026,13 @@ class SearchApp(Gtk.Window):
         spacer.set_size_request(-1, 10)
         main_vbox.pack_start(spacer, False, False, 0)
         main_vbox.pack_start(search_box, False, False, 0)
+        main_vbox.pack_start(self.results_filter_entry, False, False, 0)
         main_vbox.pack_start(scrolled, True, True, 0)
         main_vbox.pack_start(self.output_expander, False, False, 0)
 
+        self.results_filter_entry.set_no_show_all(True)
+        self.results_filter_entry.hide()
+        self.output_expander.set_no_show_all(True)
         self.output_expander.hide()
         self.add(main_vbox)
 
@@ -1125,6 +1139,7 @@ class SearchApp(Gtk.Window):
                     sanitized_name]
         
         self.last_search = sanitized_name
+        self.clear_liststore()
         self.start_spinner(_("Searching for {}...").format(sanitized_name))
         self.disable_gui()
         self.search_thread = threading.Thread(target=self.run_search, args=(search_cmd, advanced), daemon=True)
@@ -1226,14 +1241,29 @@ class SearchApp(Gtk.Window):
         ])
         return True
 
+    def on_results_filter_changed(self, entry):
+        self.filter_model.refilter()
+
+    def results_filter_func(self, model, iter, data):
+        """Filter logic: visible if name or category contains filter text."""
+        filter_text = self.results_filter_entry.get_text().lower()
+        if not filter_text:
+            return True
+        
+        category = model.get_value(iter, 0).lower()
+        name = model.get_value(iter, 1).lower()
+        
+        return filter_text in category or filter_text in name
+
     def on_search_finished(self, result):
         """GUI callback: populate the liststore from a search result dict."""
         try:
             if "error" in result:
                 self.set_status_message(result["error"])
                 self.stop_spinner(True)
+                self.clear_liststore()
                 return
-            self.liststore.clear()
+            self.clear_liststore()
             for pkg in result.get("packages", []):
                 self._append_package_to_liststore(pkg)
             n = len(self.liststore)
@@ -1242,6 +1272,13 @@ class SearchApp(Gtk.Window):
                 else _("No results")
             )
             self.stop_spinner()
+            
+            # Show filter bar only if we have more than 10 results
+            if n > 10:
+                self.results_filter_entry.show()
+            else:
+                self.results_filter_entry.hide()
+
         except Exception as e:
             print(_("Error processing search results:"), e)
             self.set_status_message(_("Error displaying search results"))
@@ -1279,10 +1316,12 @@ class SearchApp(Gtk.Window):
             details_area = treeview.get_cell_area(path, details_col)
         except Exception: return
         
-        iter_ = self.liststore.get_iter(path)
+        # Mapping from filter model to child model (liststore)
+        filter_iter = self.filter_model.get_iter(path)
+        child_iter = self.filter_model.convert_iter_to_child_iter(filter_iter)
         
-        # Read the internal integer ID for comparison (data index 5)
-        action_id = self.liststore.get_value(iter_, 5)
+        # Read values from the liststore using child_iter
+        action_id = self.liststore.get_value(child_iter, 5)
         
         # --- Handle Action Column Clicks ---
         if action_area and action_area.x <= event.x < (action_area.x + action_area.width):
@@ -1291,36 +1330,36 @@ class SearchApp(Gtk.Window):
             if action_id == self.ACTION_PROTECTED: 
                 SearchApp.show_protected_popup(self, path) 
             elif action_id == self.ACTION_FLATPAK_READONLY:
-                display_label = self.liststore.get_value(iter_, 1)
+                display_label = self.liststore.get_value(child_iter, 1)
                 app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
                 installed = app_id in (self.appstream_index._installed_ids if self.appstream_index else set())
                 if installed:
-                    self.confirm_flatpak_remove(iter_)
+                    self.confirm_flatpak_remove(child_iter)
                 else:
-                    self.confirm_flatpak_install(iter_)
+                    self.confirm_flatpak_install(child_iter)
             elif action_id == self.ACTION_INSTALL: 
-                self.confirm_install(iter_)
+                self.confirm_install(child_iter)
             elif action_id == self.ACTION_REMOVE: 
-                self.confirm_uninstall(iter_)
+                self.confirm_uninstall(child_iter)
             return True
             
         # --- Handle Details Column Clicks ---
         if details_area and details_area.x <= event.x < (details_area.x + details_area.width):
             # Read the internal integer ID for comparison (data index 5)
-            action_id_for_details = self.liststore.get_value(iter_, 5)
+            action_id_for_details = self.liststore.get_value(child_iter, 5)
             is_flatpak = (action_id_for_details == self.ACTION_FLATPAK_READONLY)
 
             package_info = {
-                "category": self.liststore.get_value(iter_, 0),
-                "version": self.liststore.get_value(iter_, 3),
-                "repository": self.liststore.get_value(iter_, 4),
+                "category": self.liststore.get_value(child_iter, 0),
+                "version": self.liststore.get_value(child_iter, 3),
+                "repository": self.liststore.get_value(child_iter, 4),
                 "installed": action_id_for_details in [self.ACTION_REMOVE, self.ACTION_PROTECTED],
                 "protected": action_id_for_details == self.ACTION_PROTECTED,
                 "_flatpak": is_flatpak,
             }
             if is_flatpak:
                 # col 1 = display label; look up real app-id from dict
-                display_label = self.liststore.get_value(iter_, 1)
+                display_label = self.liststore.get_value(child_iter, 1)
                 app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
                 package_info["name"] = app_id
                 package_info["_flatpak_display"] = display_label
@@ -1335,7 +1374,7 @@ class SearchApp(Gtk.Window):
                 else:
                     package_info["description"] = ""
             else:
-                package_info["name"] = self.liststore.get_value(iter_, 1)
+                package_info["name"] = self.liststore.get_value(child_iter, 1)
                 package_info["description"] = ""
             self.show_package_details_popup(package_info)
             return True
@@ -1584,6 +1623,9 @@ class SearchApp(Gtk.Window):
     def clear_liststore(self):
         self.liststore.clear()
         self._flatpak_appids.clear()
+        if hasattr(self, 'results_filter_entry'):
+            self.results_filter_entry.set_text("")
+            self.results_filter_entry.hide()
 
     def on_details_action(self, package_info):
         """Called when Install/Remove is clicked in the details window."""
