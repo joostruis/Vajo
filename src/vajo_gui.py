@@ -857,6 +857,7 @@ class SearchApp(Gtk.Window):
         self.search_entry = Gtk.Entry()
         self.search_entry.set_placeholder_text(_("Enter package name"))
         self.search_entry.connect("activate", self.on_search_clicked)
+        self.search_entry.connect("changed", self.on_search_entry_changed)
 
         self.advanced_search_checkbox = Gtk.CheckButton(label=_("Advanced"))
         self.advanced_search_checkbox.set_tooltip_text(
@@ -869,11 +870,6 @@ class SearchApp(Gtk.Window):
         search_box.pack_start(self.search_entry, True, True, 0)
         search_box.pack_start(self.advanced_search_checkbox, False, False, 0)
         search_box.pack_start(self.search_button, False, False, 0)
-
-        # --- Results Filter Bar ---
-        self.results_filter_entry = Gtk.SearchEntry()
-        self.results_filter_entry.set_placeholder_text(_("Filter results..."))
-        self.results_filter_entry.connect("changed", self.on_results_filter_changed)
 
         # --- TreeView (Results Table) ---
         self.treeview = Gtk.TreeView()
@@ -1007,12 +1003,9 @@ class SearchApp(Gtk.Window):
         spacer.set_size_request(-1, 10)
         main_vbox.pack_start(spacer, False, False, 0)
         main_vbox.pack_start(search_box, False, False, 0)
-        main_vbox.pack_start(self.results_filter_entry, False, False, 0)
         main_vbox.pack_start(scrolled, True, True, 0)
         main_vbox.pack_start(self.output_expander, False, False, 0)
 
-        self.results_filter_entry.set_no_show_all(True)
-        self.results_filter_entry.hide()
         self.add(main_vbox)
 
         # --- Timers + UI Refresh ---
@@ -1036,7 +1029,6 @@ class SearchApp(Gtk.Window):
         self.search_button.set_sensitive(sensitive)
         self.treeview.set_sensitive(sensitive)
         self.treeview.set_has_tooltip(sensitive)
-        self.results_filter_entry.set_sensitive(sensitive)
         for item in self.menu_bar.get_children():
             if isinstance(item, Gtk.MenuItem): item.set_sensitive(sensitive)
 
@@ -1211,12 +1203,14 @@ class SearchApp(Gtk.Window):
         ])
         return True
 
-    def on_results_filter_changed(self, entry):
-        self.filter_model.refilter()
+    def on_search_entry_changed(self, entry):
+        """Live-filter current results as the user types (no new search)."""
+        if self.last_search:
+            self.filter_model.refilter()
 
     def results_filter_func(self, model, iter, data):
         """Filter logic: visible if name or category contains filter text."""
-        filter_text = self.results_filter_entry.get_text().lower()
+        filter_text = self.search_entry.get_text().strip().lower()
         if not filter_text:
             return True
         
@@ -1243,11 +1237,7 @@ class SearchApp(Gtk.Window):
             )
             self.stop_spinner()
             
-            # Show filter bar only if we have more than 10 results
-            if n > 10:
-                self.results_filter_entry.show()
-            else:
-                self.results_filter_entry.hide()
+
 
         except Exception as e:
             print(_("Error processing search results:"), e)
@@ -1351,23 +1341,36 @@ class SearchApp(Gtk.Window):
             
         return False
 
+    def _filter_path_to_liststore_path(self, filter_path):
+        """Convert a filter_model path to the underlying liststore path."""
+        if filter_path is None:
+            return None
+        iter_ = self.filter_model.get_iter(filter_path)
+        return self.liststore.get_path(self.filter_model.convert_iter_to_child_iter(iter_))
+
     def on_treeview_motion(self, treeview, event):
         hit = treeview.get_path_at_pos(int(event.x), int(event.y))
-        
-        new_path = hit[0] if hit else None
-        
-        if new_path != self.highlighted_row_path:
-            
+
+        new_filter_path = hit[0] if hit else None
+
+        if new_filter_path != self.highlighted_row_path:
             if self.highlighted_row_path is not None:
                 try:
-                    self.liststore[self.highlighted_row_path][8] = None # Index 8 is Highlight Color
-                except ValueError:
-                    pass # Row might have been deleted
-            
-            if new_path:
-                self.liststore[new_path][8] = self.HIGHLIGHT_COLOR
-                
-            self.highlighted_row_path = new_path
+                    ls_path = self._filter_path_to_liststore_path(self.highlighted_row_path)
+                    if ls_path:
+                        self.liststore[ls_path][8] = None  # Index 8 is Highlight Color
+                except (ValueError, TypeError):
+                    pass  # Row might have been deleted
+
+            if new_filter_path:
+                try:
+                    ls_path = self._filter_path_to_liststore_path(new_filter_path)
+                    if ls_path:
+                        self.liststore[ls_path][8] = self.HIGHLIGHT_COLOR
+                except (ValueError, TypeError):
+                    pass
+
+            self.highlighted_row_path = new_filter_path
 
         if hit:
             path, col, _, _ = hit
@@ -1381,8 +1384,12 @@ class SearchApp(Gtk.Window):
 
     def on_treeview_leave(self, treeview, event):
         if self.highlighted_row_path is not None:
-            try: self.liststore[self.highlighted_row_path][8] = None # Index 8 is Highlight Color
-            except ValueError: pass
+            try:
+                ls_path = self._filter_path_to_liststore_path(self.highlighted_row_path)
+                if ls_path:
+                    self.liststore[ls_path][8] = None  # Index 8 is Highlight Color
+            except (ValueError, TypeError):
+                pass
             self.highlighted_row_path = None
         self.set_cursor(None)
     def set_cursor(self, cursor):
@@ -1592,9 +1599,7 @@ class SearchApp(Gtk.Window):
     def clear_liststore(self):
         self.liststore.clear()
         self._flatpak_appids.clear()
-        if hasattr(self, 'results_filter_entry'):
-            self.results_filter_entry.set_text("")
-            self.results_filter_entry.hide()
+
 
     def on_details_action(self, package_info):
         """Called when Install/Remove is clicked in the details window."""
