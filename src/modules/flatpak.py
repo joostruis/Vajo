@@ -302,14 +302,15 @@ class AppstreamIndex:
                     # Check if flathub exists
                     res = subprocess.run(["flatpak", "remotes", "--columns=name"], capture_output=True, text=True)
                     if "flathub" not in res.stdout:
-                        print("flatpak: Flathub remote missing. Adding for current user silently...")
-                        # Using --user prevents silent background threads from hanging on sudo/polkit prompts
+                        if "--debug" in sys.argv:
+                            print("[DEBUG] flatpak: Flathub remote not found, adding for current user", flush=True)
+                        # Using --user prevents background threads from hanging on sudo/polkit prompts
                         subprocess.run(
                             ["flatpak", "remote-add", "--user", "--if-not-exists", "flathub", "https://dl.flathub.org/repo/flathub.flatpakrepo"],
                             capture_output=True
                         )
                 except Exception as e:
-                    print(f"flatpak: Failed to add Flathub remote: {e}")
+                    print(f"flatpak: Failed to add Flathub remote: {e}", file=sys.stderr)
 
                 # --- 2. SILENT APPSTREAM REFRESH ---
                 paths = _find_appstream_files()
