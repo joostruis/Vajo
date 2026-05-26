@@ -873,7 +873,7 @@ class PackageSearcher:
             print("Search error: Invalid JSON", file=sys.stderr)
             return {"error": _("Invalid JSON output")}
         except Exception as e:
-            print(_("Error running search:"), e, file=sys.stderr)
+            print("Error running search:", e, file=sys.stderr)
             return {"error": _("Error executing the search command")}
 
 # -------------------------
