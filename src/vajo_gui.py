@@ -1218,14 +1218,18 @@ class SearchApp(Gtk.Window):
             self.filter_model.refilter()
 
     def results_filter_func(self, model, iter, data):
-        """Filter logic: visible if name or category contains filter text."""
+        """Filter logic: visible if name or category contains filter text.
+
+        No filtering is applied when the entry still holds the original search
+        query — the user must type something different to start narrowing results.
+        """
         filter_text = self.search_entry.get_text().strip().lower()
-        if not filter_text:
+        if not filter_text or filter_text == self.last_search.lower():
             return True
-        
+
         category = model.get_value(iter, 0).lower()
         name = model.get_value(iter, 1).lower()
-        
+
         return filter_text in category or filter_text in name
 
     def on_search_finished(self, result):
