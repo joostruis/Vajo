@@ -66,7 +66,7 @@ class PackageState:
             Debug.log(f"get_installed_packages: luet call done in {time.time()-_t0:.3f}s")
 
             if res.returncode != 0 and not res.stdout.strip():
-                print(f"luet database get-all-installed failed with return code {res.returncode}. Stderr: {res.stderr}")
+                print(f"luet database get-all-installed failed with return code {res.returncode}. Stderr: {res.stderr}", file=sys.stderr)
                 return {}
 
             # Fast line scanner — avoids yaml.safe_load which takes ~2.5s on 54k lines.
@@ -91,7 +91,7 @@ class PackageState:
             return pkgs
 
         except Exception as e:
-            print("Error fetching installed package list:", e)
+            print("Error fetching installed package list:", e, file=sys.stderr)
             return {}
 
 # -------------------------
@@ -147,7 +147,7 @@ class AboutInfo:
         
     @staticmethod
     def get_version():
-        return "0.9.4.8"
+        return "0.9.4.9"
 
     @staticmethod
     def get_copyright():
@@ -382,7 +382,7 @@ class RepositoryUpdater:
             )
 
         except Exception as e:
-            print("Exception during repo update:", e)
+            print("Exception during repo update:", e, file=sys.stderr)
             schedule_callback(on_error_callback)
             schedule_callback(on_finish_callback, inhibit_cookie)
 
@@ -494,7 +494,7 @@ class SystemChecker:
                     return 
             pass
         except Exception as e:
-            print("System check critical exception:", e)
+            print("System check critical exception:", e, file=sys.stderr)
             if isinstance(e, Exception) and "return code" in str(e):
                 status_message = str(e)
             else:
@@ -552,7 +552,7 @@ class SystemUpgrader:
                 on_finished=self._on_first_run_done
             )
         except Exception as e:
-            print("Exception during system upgrade:", e)
+            print("Exception during system upgrade:", e, file=sys.stderr)
             self._on_first_run_done(-1, self._("Error starting upgrade process"))
             
     def _on_line_first_run(self, line):
@@ -586,7 +586,7 @@ class SystemUpgrader:
                 on_finished=lambda rc: self._finalize(rc, self._("System upgrade completed successfully"))
             )
         except Exception as e:
-            print("Exception during second upgrade step:", e)
+            print("Exception during second upgrade step:", e, file=sys.stderr)
             self._finalize(-1, self._("Error starting second upgrade step"))
 
     def _finalize(self, returncode, success_message):
@@ -619,7 +619,7 @@ class CacheCleaner:
             if res.returncode == 0:
                 return int(res.stdout.strip().split("\t", 1)[0])
         except Exception as e:
-            print("Error checking Luet cache size:", e)
+            print("Error checking Luet cache size:", e, file=sys.stderr)
         return None
 
     @staticmethod
@@ -838,7 +838,7 @@ class PackageOperations:
             try:
                 new_cache = PackageState.get_installed_packages(run_sync_func)
             except Exception as e:
-                print(f"Error refreshing cache: {e}")
+                print(f"Error refreshing cache: {e}", file=sys.stderr)
                 new_cache = {}
 
             # 3. Run system updates (Blocking)
@@ -855,7 +855,7 @@ class PackageSearcher:
         try:
             res = command_runner_sync(search_command, require_root=True)
             if res.returncode != 0:
-                print("Search error:", res.stderr)
+                print("Search error:", res.stderr, file=sys.stderr)
                 return {"error": _("Error executing the search command")}
             
             output = (res.stdout or "").strip()
@@ -870,10 +870,10 @@ class PackageSearcher:
                 
             return {"packages": packages}
         except json.JSONDecodeError:
-            print("Search error: Invalid JSON")
+            print("Search error: Invalid JSON", file=sys.stderr)
             return {"error": _("Invalid JSON output")}
         except Exception as e:
-            print(_("Error running search:"), e)
+            print(_("Error running search:"), e, file=sys.stderr)
             return {"error": _("Error executing the search command")}
 
 # -------------------------
@@ -967,7 +967,7 @@ class DescriptionIndex:
                 Debug.log(f"DescriptionIndex: grep done in {time.time()-_t0:.3f}s")
 
                 if res.returncode != 0 or not res.stdout.strip():
-                    print("DescriptionIndex: grep returned no results")
+                    Debug.log("DescriptionIndex: grep returned no results")
                     return
 
                 for line in res.stdout.splitlines():
@@ -1002,7 +1002,7 @@ class DescriptionIndex:
                         continue
 
             except Exception as e:
-                print(f"DescriptionIndex: error building index: {e}")
+                print(f"DescriptionIndex: error building index: {e}", file=sys.stderr)
 
             Debug.log(f"DescriptionIndex: build complete, {len(index)} packages indexed in {time.time()-_t0:.3f}s")
             with self._lock:

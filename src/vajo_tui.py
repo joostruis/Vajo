@@ -459,7 +459,7 @@ class LuetTUI:
             # Restore cursor
             curses.curs_set(1)
         except Exception as e:
-            print(f"Error during cleanup: {e}")
+            print(f"Error during cleanup: {e}", file=sys.stderr)
 
     def _get_elevation_cmd(self):
         if os.getuid() == 0:
@@ -478,7 +478,7 @@ class LuetTUI:
                 new_cache = PackageState.get_installed_packages(self.command_runner.run_sync)
                 self.scheduler.schedule(self._on_cache_updated, new_cache)
             except Exception as e:
-                print(f"Error refreshing installed packages cache: {e}")
+                print(f"Error refreshing installed packages cache: {e}", file=sys.stderr)
                 self.scheduler.schedule(self._on_cache_updated, {})
         
         threading.Thread(target=worker, daemon=True).start()
@@ -523,7 +523,7 @@ class LuetTUI:
                 self.installed_packages_cache = new_cache
                 self.cache_initialized = True
         except Exception as e:
-            print(f"Error refreshing installed packages cache: {e}")
+            print(f"Error refreshing installed packages cache: {e}", file=sys.stderr)
             with self.cache_lock:
                 self.installed_packages_cache = {}
 
@@ -1039,7 +1039,7 @@ class LuetTUI:
                     try:
                         new_cache = PackageState.get_installed_packages(self.command_runner.run_sync)
                     except Exception as e:
-                        print(f"Error refreshing cache after upgrade: {e}")
+                        print(f"Error refreshing cache after upgrade: {e}", file=sys.stderr)
                         new_cache = {}
                     self.scheduler.schedule(on_cache_ready, new_cache)
 
@@ -2262,10 +2262,10 @@ def main(stdscr):
 if __name__ == "__main__":
     set_process_title("vajo-tui")
     try:
-        print(_("Starting Vajo: a Luet TUI frontend..."))
+        Debug.log("Starting Vajo: a Luet TUI frontend...")
         curses.wrapper(main)
     except KeyboardInterrupt:
-        print("\nShutdown complete.")
+        Debug.log("Shutdown complete.")
         sys.exit(0)
     except Exception as e:
         print(_("An error occurred outside of curses: {}").format(e), file=sys.stderr)

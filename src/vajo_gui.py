@@ -879,11 +879,11 @@ class SearchApp(Gtk.Window):
         # 5: Action ID | 6: Action Text | 7: Details | 8: Highlight Color | 9: Description (tooltip)
         self.liststore = Gtk.ListStore(str, str, str, str, str, int, str, str, str, str)
         
-        # Wrap liststore in a filter model
+        # Wrap liststore in a filter model, then a sort model
         self.filter_model = self.liststore.filter_new()
         self.filter_model.set_visible_func(self.results_filter_func)
-        
-        self.treeview.set_model(self.filter_model)
+        self.sort_model = Gtk.TreeModelSort(model=self.filter_model)
+        self.treeview.set_model(self.sort_model)
 
         # --- Columns ---
         columns = [
@@ -1206,6 +1206,15 @@ class SearchApp(Gtk.Window):
     def on_search_entry_changed(self, entry):
         """Live-filter current results as the user types (no new search)."""
         if self.last_search:
+            # Clear any highlighted row before refiltering — the path will be stale after
+            if self.highlighted_row_path is not None:
+                try:
+                    ls_path = self._sort_path_to_liststore_path(self.highlighted_row_path)
+                    if ls_path:
+                        self.liststore[ls_path][8] = None
+                except (ValueError, TypeError):
+                    pass
+                self.highlighted_row_path = None
             self.filter_model.refilter()
 
     def results_filter_func(self, model, iter, data):
@@ -1276,8 +1285,9 @@ class SearchApp(Gtk.Window):
             details_area = treeview.get_cell_area(path, details_col)
         except Exception: return
         
-        # Mapping from filter model to child model (liststore)
-        filter_iter = self.filter_model.get_iter(path)
+        # Mapping from sort model -> filter model -> liststore
+        sort_iter = self.sort_model.get_iter(path)
+        filter_iter = self.sort_model.convert_iter_to_child_iter(sort_iter)
         child_iter = self.filter_model.convert_iter_to_child_iter(filter_iter)
         
         # Read values from the liststore using child_iter
@@ -1341,36 +1351,38 @@ class SearchApp(Gtk.Window):
             
         return False
 
-    def _filter_path_to_liststore_path(self, filter_path):
-        """Convert a filter_model path to the underlying liststore path."""
-        if filter_path is None:
+    def _sort_path_to_liststore_path(self, sort_path):
+        """Convert a sort_model path to the underlying liststore path."""
+        if sort_path is None:
             return None
-        iter_ = self.filter_model.get_iter(filter_path)
-        return self.liststore.get_path(self.filter_model.convert_iter_to_child_iter(iter_))
+        sort_iter = self.sort_model.get_iter(sort_path)
+        filter_iter = self.sort_model.convert_iter_to_child_iter(sort_iter)
+        child_iter = self.filter_model.convert_iter_to_child_iter(filter_iter)
+        return self.liststore.get_path(child_iter)
 
     def on_treeview_motion(self, treeview, event):
         hit = treeview.get_path_at_pos(int(event.x), int(event.y))
 
-        new_filter_path = hit[0] if hit else None
+        new_sort_path = hit[0] if hit else None
 
-        if new_filter_path != self.highlighted_row_path:
+        if new_sort_path != self.highlighted_row_path:
             if self.highlighted_row_path is not None:
                 try:
-                    ls_path = self._filter_path_to_liststore_path(self.highlighted_row_path)
+                    ls_path = self._sort_path_to_liststore_path(self.highlighted_row_path)
                     if ls_path:
                         self.liststore[ls_path][8] = None  # Index 8 is Highlight Color
                 except (ValueError, TypeError):
                     pass  # Row might have been deleted
 
-            if new_filter_path:
+            if new_sort_path:
                 try:
-                    ls_path = self._filter_path_to_liststore_path(new_filter_path)
+                    ls_path = self._sort_path_to_liststore_path(new_sort_path)
                     if ls_path:
                         self.liststore[ls_path][8] = self.HIGHLIGHT_COLOR
                 except (ValueError, TypeError):
                     pass
 
-            self.highlighted_row_path = new_filter_path
+            self.highlighted_row_path = new_sort_path
 
         if hit:
             path, col, _, _ = hit
@@ -1385,19 +1397,24 @@ class SearchApp(Gtk.Window):
     def on_treeview_leave(self, treeview, event):
         if self.highlighted_row_path is not None:
             try:
-                ls_path = self._filter_path_to_liststore_path(self.highlighted_row_path)
+                ls_path = self._sort_path_to_liststore_path(self.highlighted_row_path)
                 if ls_path:
                     self.liststore[ls_path][8] = None  # Index 8 is Highlight Color
             except (ValueError, TypeError):
                 pass
             self.highlighted_row_path = None
         self.set_cursor(None)
+
     def set_cursor(self, cursor):
         window = self.get_window()
         if window: window.set_cursor(cursor)
 
     def show_protected_popup(self, path):
-        category, name = self.liststore[path][0], self.liststore[path][1]
+        sort_iter = self.sort_model.get_iter(path)
+        filter_iter = self.sort_model.convert_iter_to_child_iter(sort_iter)
+        child_iter = self.filter_model.convert_iter_to_child_iter(filter_iter)
+        category = self.liststore.get_value(child_iter, 0)
+        name = self.liststore.get_value(child_iter, 1)
         # Use core logic to get the protection message
         msg = PackageFilter.get_protection_message(category, name)
         if msg is None:
