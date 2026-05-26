@@ -125,9 +125,11 @@ class RollbackManager:
         ("/usr/share/vajo/vajo_core.py",           "vajo_core.py"),
         ("/usr/bin/vajo_gui.py",                    "vajo_gui.py"),
         ("/usr/bin/vajo_tui.py",                    "vajo_tui.py"),
-        ("/usr/share/vajo/modules/__init__.py",        "modules/__init__.py"),
-        ("/usr/share/vajo/modules/i18n.py",            "modules/i18n.py"),
-        ("/usr/share/vajo/modules/rollback.py",        "modules/rollback.py"),
+        ("/usr/share/vajo/modules/__init__.py",     "modules/__init__.py"),
+        ("/usr/share/vajo/modules/config.py",       "modules/config.py"),
+        ("/usr/share/vajo/modules/flatpak.py",      "modules/flatpak.py"),
+        ("/usr/share/vajo/modules/i18n.py",         "modules/i18n.py"),
+        ("/usr/share/vajo/modules/rollback.py",     "modules/rollback.py"),
     ]
 
     @staticmethod
