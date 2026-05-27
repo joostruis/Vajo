@@ -270,6 +270,31 @@ def _get_installed_ids() -> set:
     return set()
 
 
+def _get_updateable_ids() -> set:
+    """
+    Return a set of Flatpak app-ids that have updates available.
+    Uses `flatpak remote-ls --updates`.
+    """
+    import subprocess
+    try:
+        # --columns=application gives just the IDs of updateable packages
+        r = subprocess.run(
+            ["flatpak", "remote-ls", "--system", "--updates", "--columns=application"],
+            capture_output=True, text=True, timeout=15
+        )
+        if r.returncode == 0 and r.stdout.strip():
+            ids = set()
+            for line in r.stdout.splitlines():
+                app_id = line.strip()
+                if app_id and app_id.count(".") >= 2:
+                    ids.add(app_id)
+            return ids
+    except Exception as e:
+        if "--debug" in sys.argv:
+            print(f"[DEBUG] flatpak: Failed to get updateable IDs: {e}")
+    return set()
+
+
 # ---------------------------------------------------------------------------
 # AppstreamIndex — mirrors the DescriptionIndex pattern from vajo_core.py
 # ---------------------------------------------------------------------------
@@ -285,11 +310,12 @@ class AppstreamIndex:
     """
 
     def __init__(self):
-        self._index         = {}   # app_id -> dict
-        self._installed_ids = set() # app_ids currently installed
-        self._ready         = False
-        self._lock          = threading.Lock()
-        self._ready_event   = threading.Event()
+        self._index          = {}   # app_id -> dict
+        self._installed_ids  = set() # app_ids currently installed
+        self._updateable_ids = set() # app_ids with updates available
+        self._ready          = False
+        self._lock           = threading.Lock()
+        self._ready_event    = threading.Event()
 
     def build_async(self, on_ready_callback=None):
         def worker():
@@ -330,12 +356,14 @@ class AppstreamIndex:
                             if app_id not in index:
                                 index[app_id] = entry
 
-                installed_ids = _get_installed_ids()
+                installed_ids  = _get_installed_ids()
+                updateable_ids = _get_updateable_ids()
 
                 with self._lock:
-                    self._index         = index
-                    self._installed_ids = installed_ids
-                    self._ready         = True
+                    self._index          = index
+                    self._installed_ids  = installed_ids
+                    self._updateable_ids = updateable_ids
+                    self._ready          = True
                 self._ready_event.set()
             except Exception as e:
                 print(f"flatpak: unexpected error in build_async worker: {e}")
@@ -355,9 +383,11 @@ class AppstreamIndex:
         Call this after an install or remove operation completes.
         """
         def worker():
-            installed_ids = _get_installed_ids()
+            installed_ids  = _get_installed_ids()
+            updateable_ids = _get_updateable_ids()
             with self._lock:
-                self._installed_ids = installed_ids
+                self._installed_ids  = installed_ids
+                self._updateable_ids = updateable_ids
             if on_done:
                 on_done()
         threading.Thread(target=worker, daemon=True).start()
@@ -372,19 +402,20 @@ class AppstreamIndex:
         with self._lock:
             if not self._ready:
                 return []
-            installed_ids = self._installed_ids
+            installed_ids  = self._installed_ids
+            updateable_ids = self._updateable_ids
             # We want to show everything that is installed, even if it's a child/plugin
             results = []
             for app_id in installed_ids:
                 entry = self._index.get(app_id)
                 if entry:
-                    results.append(self._to_pkg(entry, installed_ids))
+                    results.append(self._to_pkg(entry, installed_ids, updateable_ids))
                 else:
                     # Not in appstream index? Still show it as a basic entry
                     results.append({
                         "category":              _("Flatpak"),
                         "name":                  app_id,
-                        "upgrade_symbol":        "",
+                        "upgrade_symbol":        "↑" if app_id in updateable_ids else "",
                         "version":               "",
                         "repository":            "Flathub",
                         "is_actually_installed": True,
@@ -424,7 +455,8 @@ class AppstreamIndex:
         with self._lock:
             if not self._ready:
                 return []
-            installed_ids = self._installed_ids
+            installed_ids  = self._installed_ids
+            updateable_ids = self._updateable_ids
             for entry in self._index.values():
                 haystack = (entry["app_id"] + " " + entry["name"]).lower()
                 if all(w in haystack for w in words):
@@ -445,11 +477,11 @@ class AppstreamIndex:
                 if parent != app_id
             )
             if not is_child:
-                results.append(self._to_pkg(entry, installed_ids))
+                results.append(self._to_pkg(entry, installed_ids, updateable_ids))
 
         return results
 
-    def _to_pkg(self, entry: dict, installed_ids: set) -> dict:
+    def _to_pkg(self, entry: dict, installed_ids: set, updateable_ids: set) -> dict:
         """Convert an index entry to the standard package dict shape."""
         app_id    = entry["app_id"]
         installed = app_id in installed_ids
@@ -461,7 +493,7 @@ class AppstreamIndex:
             # ---- fields the GUI reads from the liststore ----
             "category":              _(raw_category),
             "name":                  app_id,
-            "upgrade_symbol":        "",
+            "upgrade_symbol":        "↑" if app_id in updateable_ids else "",
             "version":               entry.get("version", ""),
             "repository":            "Flathub",
             # ---- enrichment fields (mirrors SearchProcessor output) ----
@@ -477,6 +509,7 @@ class AppstreamIndex:
             "_flatpak_label":        entry["name"],
             "_flatpak":              True,
         }
+
 
 
 # ---------------------------------------------------------------------------
