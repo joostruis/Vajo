@@ -19,6 +19,7 @@ import shutil
 import os
 import sys
 import signal
+import re
 
 # -------------------------
 # Version-Agnostic Core Discovery
@@ -598,8 +599,11 @@ class LuetTUI:
 
     def append_to_log(self, text):
         if text is None: return
+        # Strip ANSI escape codes and carriage returns which mess up curses
+        ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
         with self.lock:
             for ln in str(text).splitlines():
+                ln = ansi_escape.sub('', ln).replace('\r', '')
                 self.log_lines.append(ln)
             self.log_scroll = 0
 
@@ -1075,6 +1079,8 @@ class LuetTUI:
         threading.Thread(target=start_worker, daemon=True).start()
 
     def run_check_system(self):
+        self.log_visible = True
+        self.log_scroll = 0
         self.set_status(_("Checking system for missing files..."))
         self.draw()
         def on_log(line):
@@ -1177,6 +1183,8 @@ class LuetTUI:
         if not self.confirm_yes_no(_("Clear Luet cache?")):
             return
         self.set_status(_("Clearing Luet cache..."))
+        self.log_visible = True
+        self.log_scroll = 0
         self.append_to_log(_("--- Running 'luet cleanup' ---"))
         self.draw()
         def on_log(line): self.append_to_log(line)
@@ -1483,10 +1491,13 @@ class LuetTUI:
         if pkg.get("_flatpak", False):
             app_id = pkg["name"]
             display_label = pkg.get("_flatpak_label", app_id)
+            scope = pkg.get("_flatpak_scope", "system")
             if installed:
                 if not self.confirm_yes_no(_("Do you want to remove {}?").format(display_label)):
                     return
                 self.set_status(_("Removing {}...").format(display_label))
+                self.log_visible = True
+                self.log_scroll = 0
                 self.draw()
                 def on_flatpak_remove_done(returncode):
                     def after_refresh():
@@ -1496,18 +1507,27 @@ class LuetTUI:
                             self.set_status(_("Error removing {}.").format(display_label))
                         if self.search_query:
                             self.scheduler.schedule(self.run_search, self.search_query)
+                    
                     if self.appstream_index:
-                        self.appstream_index.refresh_installed(on_done=after_refresh)
+                        self.appstream_index.refresh_installed(on_done=lambda: self.scheduler.schedule(after_refresh))
                     else:
-                        after_refresh()
+                        self.scheduler.schedule(after_refresh)
                 try:
-                    FlatpakOperations.run_removal(self.command_runner.run_realtime, self.append_to_log, on_flatpak_remove_done, app_id)
+                    FlatpakOperations.run_removal(
+                        self.command_runner.run_realtime,
+                        lambda ln: self.scheduler.schedule(self.append_to_log, ln),
+                        lambda rc: self.scheduler.schedule(on_flatpak_remove_done, rc),
+                        app_id,
+                        scope
+                    )
                 except Exception as e:
                     self.set_status(_("Error removing package"))
             else:
                 if not self.confirm_yes_no(_("Do you want to install {}?").format(display_label)):
                     return
                 self.set_status(_("Installing {}...").format(display_label))
+                self.log_visible = True
+                self.log_scroll = 0
                 self.draw()
                 def on_flatpak_install_done(returncode):
                     def after_refresh():
@@ -1517,13 +1537,20 @@ class LuetTUI:
                             self.set_status(_("Error installing {}.").format(display_label))
                         if self.search_query:
                             self.scheduler.schedule(self.run_search, self.search_query)
+                    
                     if self.appstream_index:
-                        self.appstream_index.refresh_installed(on_done=after_refresh)
+                        self.appstream_index.refresh_installed(on_done=lambda: self.scheduler.schedule(after_refresh))
                     else:
-                        after_refresh()
+                        self.scheduler.schedule(after_refresh)
                 try:
-                    FlatpakOperations.run_installation(self.command_runner.run_realtime, self.append_to_log, on_flatpak_install_done, app_id)
+                    FlatpakOperations.run_installation(
+                        self.command_runner.run_realtime,
+                        lambda ln: self.scheduler.schedule(self.append_to_log, ln),
+                        lambda rc: self.scheduler.schedule(on_flatpak_install_done, rc),
+                        app_id
+                    )
                 except Exception as e:
+                    self.set_status(_("Error installing package"))
                     self.set_status(_("Error installing package"))
             return
 
@@ -1551,6 +1578,8 @@ class LuetTUI:
                 return
                 
             self.set_status(_("Uninstalling {}...").format(full_name))
+            self.log_visible = True
+            self.log_scroll = 0
             self.draw()
             
             def on_log(line): self.append_to_log(line)
@@ -1582,6 +1611,8 @@ class LuetTUI:
             cmd = PackageOperations.build_install_command(full_name)
 
             self.set_status(_("Installing {}...").format(full_name))
+            self.log_visible = True
+            self.log_scroll = 0
             self.draw()
             
             def on_log(line): self.append_to_log(line)
@@ -1737,6 +1768,8 @@ class LuetTUI:
                     if has_revdeps and installed:
                         hints_parts.append(_("remove disabled (has revdeps)"))
                     else:
+                        if is_flatpak and pkg.get("upgrade_symbol") == "↑":
+                            hints_parts.append("u={}".format(_("update")))
                         hints_parts.append("i={}".format(_("remove") if installed else _("install")))
                 hints_parts.append("Up/Down/PgUp/PgDn=scroll")
                 hints_parts.append("Any other key=close")
@@ -1753,8 +1786,11 @@ class LuetTUI:
                     self.show_package_files(category, name)
                 elif not is_flatpak and installed and ch in (ord('r'), ord('R')):
                     self.show_package_revdeps(category, name)
+                elif is_flatpak and pkg.get("upgrade_symbol") == "↑" and ch in (ord('u'), ord('U')):
+                    action_requested = "update"
+                    break
                 elif ch in (ord('i'), ord('I')) and not pkg.get("protected", False) and not has_revdeps:
-                    action_requested = True
+                    action_requested = "install_remove"
                     break
                 elif ch == curses.KEY_UP:
                     scroll_offset = max(0, scroll_offset - 1)
@@ -1772,19 +1808,65 @@ class LuetTUI:
 
         self.draw()
 
-        if action_requested:
+        if action_requested == "update":
+            self.do_flatpak_update(pkg)
+        elif action_requested == "install_remove":
             self.perform_action(pkg)
+
+    def do_flatpak_update(self, pkg):
+        """Update a flatpak package."""
+        app_id = pkg['name']
+        display_label = pkg.get('_flatpak_label', app_id)
+        scope = pkg.get('_flatpak_scope', 'system')
+
+        if not self.confirm_yes_no(_("Do you want to update {}?").format(display_label)):
+            return
+
+        self.set_status(_("Updating {}...").format(display_label))
+        self.log_visible = True
+        self.log_scroll = 0
+        self.draw()
+
+        def on_log(line):
+            self.append_to_log(line)
+
+        def on_done(returncode):
+            def after_refresh():
+                if returncode == 0:
+                    self.set_status(_("Updated {}.").format(display_label))
+                else:
+                    self.set_status(_("Error updating {}").format(display_label), error=True)
+                
+                if self.search_query:
+                    self.scheduler.schedule(self.run_search, self.search_query)
+
+            if self.appstream_index:
+                self.appstream_index.refresh_installed(on_done=lambda: self.scheduler.schedule(after_refresh))
+            else:
+                after_refresh()
+
+        from modules.flatpak import FlatpakOperations
+        FlatpakOperations.run_update(
+            self.command_runner.run_realtime,
+            lambda ln: self.scheduler.schedule(on_log, ln),
+            lambda rc: self.scheduler.schedule(on_done, rc),
+            app_id,
+            scope
+        )
 
     def perform_action(self, pkg):
         """Trigger install or remove for a package, as if selected from the results list."""
-        for i, r in enumerate(self.results):
+        for i, r in enumerate(self.filtered_results):
             if r['category'] == pkg['category'] and r['name'] == pkg['name']:
                 self.selected_index = i
                 self.do_install_uninstall_selected()
                 return
-        self.results.append(pkg)
-        self.selected_index = len(self.results) - 1
+        # If not in filtered_results (should not happen normally but safety first),
+        # we temporarily add it to filtered_results so do_install_uninstall_selected can find it.
+        self.filtered_results.append(pkg)
+        self.selected_index = len(self.filtered_results) - 1
         self.do_install_uninstall_selected()
+        # Note: self.run_search() will typically be called in on_done, which will refresh filtered_results
 
     def show_package_revdeps(self, category, name):
             """Show a scrollable list of packages that require this package (revdeps) with spinner animation."""

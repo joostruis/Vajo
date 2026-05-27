@@ -380,6 +380,11 @@ class PackageDetailsPopup(Gtk.Window):
         button_box.pack_end(close_button, False, False, 0)
 
         if on_action_callback and not protected:
+            if is_flatpak and package_info.get("upgradeable"):
+                self.update_button = Gtk.Button(label=_("Update"))
+                self.update_button.connect("clicked", self.on_update_clicked)
+                button_box.pack_end(self.update_button, False, False, 0)
+
             action_label = _("Remove") if installed else _("Install")
             self.action_button = Gtk.Button(label=action_label)
             self.action_button.connect("clicked", self.on_action_clicked)
@@ -396,8 +401,18 @@ class PackageDetailsPopup(Gtk.Window):
         if installed and not is_flatpak:
             self.load_required_by_info()
 
-    
+    def on_update_clicked(self, button):
+        """Close the window and trigger the update action."""
+        if self.on_action_callback:
+            self.action_triggered = True
+            # Clone package_info and set a flag to indicate update action
+            info = dict(self.package_info)
+            info["_flatpak_update"] = True
+            self.on_action_callback(info)
+        self.destroy()
+
     def _make_detail_label(self, text):
+
         """Return a wrapped, left-aligned Gtk.Label for detail fields."""
         lbl = Gtk.Label(label=text)
         lbl.set_xalign(0)
@@ -1306,7 +1321,7 @@ class SearchApp(Gtk.Window):
             elif action_id == self.ACTION_FLATPAK_READONLY:
                 display_label = self.liststore.get_value(child_iter, 1)
                 app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
-                installed = app_id in (self.appstream_index._installed_ids if self.appstream_index else set())
+                installed = app_id in (self.appstream_index._installed_map if self.appstream_index else {})
                 if installed:
                     self.confirm_flatpak_remove(child_iter)
                 else:
@@ -1329,6 +1344,7 @@ class SearchApp(Gtk.Window):
                 "repository": self.liststore.get_value(child_iter, 4),
                 "installed": action_id_for_details in [self.ACTION_REMOVE, self.ACTION_PROTECTED],
                 "protected": action_id_for_details == self.ACTION_PROTECTED,
+                "upgradeable": self.liststore.get_value(child_iter, 2) == "↑",
                 "_flatpak": is_flatpak,
             }
             if is_flatpak:
@@ -1339,7 +1355,8 @@ class SearchApp(Gtk.Window):
                 package_info["_flatpak_display"] = display_label
                 if self.appstream_index is not None:
                     with self.appstream_index._lock:
-                        package_info["installed"] = app_id in self.appstream_index._installed_ids
+                        package_info["installed"] = app_id in self.appstream_index._installed_map
+                        package_info["_flatpak_scope"] = self.appstream_index._installed_map.get(app_id, "system")
                         entry = self.appstream_index._index.get(app_id, {})
                         package_info["description"] = entry.get("summary", "")
                         package_info["license"] = entry.get("license", "")
@@ -1554,12 +1571,19 @@ class SearchApp(Gtk.Window):
         else:
             GLib.idle_add(on_main_thread)
 
-    def _confirm_flatpak_operation(self, iter_, installing: bool):
-        """Shared confirm → run → refresh flow for Flatpak install and remove."""
+    def _confirm_flatpak_operation(self, iter_, operation: str, package_info=None):
+        """Shared confirm → run → refresh flow for Flatpak install, remove, and update."""
         display_label = self.liststore.get_value(iter_, 1)
         app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
+        
+        # Get scope from package_info if available, default to system
+        scope = "system"
+        if package_info and "_flatpak_scope" in package_info:
+            scope = package_info["_flatpak_scope"]
+        elif operation in ["remove", "update"]:
+            scope = self._get_flatpak_scope(app_id)
 
-        if installing:
+        if operation == "install":
             question   = _("Do you want to install {}?").format(display_label)
             secondary  = _("This will install the Flatpak from Flathub.")
             action_msg = _("Installing {}...").format(display_label)
@@ -1567,14 +1591,27 @@ class SearchApp(Gtk.Window):
             err_msg    = _("Error installing {}").format(display_label)
             run_op     = lambda cb: FlatpakOperations.run_installation(
                 self.command_runner.run_realtime, self.append_to_log, cb, app_id)
-        else:
+        elif operation == "remove":
+            # Find scope for the app_id
+            scope = self._get_flatpak_scope(app_id)
             question   = _("Do you want to remove {}?").format(display_label)
             secondary  = _("This will remove the Flatpak application.")
             action_msg = _("Removing {}...").format(display_label)
             ok_msg     = _("Removed {}.").format(display_label)
             err_msg    = _("Error removing {}").format(display_label)
             run_op     = lambda cb: FlatpakOperations.run_removal(
-                self.command_runner.run_realtime, self.append_to_log, cb, app_id)
+                self.command_runner.run_realtime, self.append_to_log, cb, app_id, scope)
+        elif operation == "update":
+            scope = self._get_flatpak_scope(app_id)
+            question   = _("Do you want to update {}?").format(display_label)
+            secondary  = _("This will update the Flatpak application to the latest version.")
+            action_msg = _("Updating {}...").format(display_label)
+            ok_msg     = _("Updated {}.").format(display_label)
+            err_msg    = _("Error updating {}").format(display_label)
+            run_op     = lambda cb: FlatpakOperations.run_update(
+                self.command_runner.run_realtime, self.append_to_log, cb, app_id, scope)
+        else:
+            return
 
         dlg = Gtk.MessageDialog(parent=self, modal=True,
                                 message_type=Gtk.MessageType.QUESTION,
@@ -1612,10 +1649,26 @@ class SearchApp(Gtk.Window):
             self.stop_spinner()
 
     def confirm_flatpak_install(self, iter_):
-        self._confirm_flatpak_operation(iter_, installing=True)
+        self._confirm_flatpak_operation(iter_, "install")
 
-    def confirm_flatpak_remove(self, iter_):
-        self._confirm_flatpak_operation(iter_, installing=False)
+    def confirm_flatpak_remove(self, iter_, package_info=None):
+        self._confirm_flatpak_operation(iter_, "remove", package_info)
+
+    def confirm_flatpak_update(self, iter_, package_info=None):
+        self._confirm_flatpak_operation(iter_, "update", package_info)
+
+    def _get_flatpak_scope(self, app_id: str) -> str:
+        """Helper to find the scope for an installed flatpak from current results."""
+        if not self.appstream_index:
+            return "system"
+        # We can't easily peek into the background index's private map, 
+        # but the GUI already has the results displayed.
+        # However, it's safer to just ask the index for installed packages.
+        installed = self.appstream_index.get_installed_packages()
+        for pkg in installed:
+            if pkg.get("name") == app_id:
+                return pkg.get("_flatpak_scope", "system")
+        return "system"
 
     def clear_liststore(self):
         self.liststore.clear()
@@ -1636,8 +1689,10 @@ class SearchApp(Gtk.Window):
                 name_match = self.liststore.get_value(iter_, 1) == package_info.get("name", "")
             if cat_match and name_match:
                 if package_info.get("_flatpak", False):
-                    if package_info.get("installed", False):
-                        self.confirm_flatpak_remove(iter_)
+                    if package_info.get("_flatpak_update", False):
+                        self.confirm_flatpak_update(iter_, package_info)
+                    elif package_info.get("installed", False):
+                        self.confirm_flatpak_remove(iter_, package_info)
                     else:
                         self.confirm_flatpak_install(iter_)
                 elif package_info.get("is_actually_installed") or package_info.get("installed"):

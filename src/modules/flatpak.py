@@ -230,10 +230,10 @@ def _parse_appstream_file(path: str) -> list:
 # Installed-package detection
 # ---------------------------------------------------------------------------
 
-def _get_installed_ids() -> set:
+def _get_installed_ids() -> dict:
     """
-    Return a set of installed Flatpak app-ids
-    (e.g. {'org.gimp.GIMP', 'com.spotify.Client'}).
+    Return a dict mapping installed Flatpak app-ids to their installation scope
+    (e.g. {'com.spotify.Client': 'user', 'org.gimp.GIMP': 'system'}).
     """
     import subprocess
 
@@ -244,55 +244,45 @@ def _get_installed_ids() -> set:
         except Exception as e:
             return -1, "", str(e)
 
-    # Strategy 1: --columns=application (one app-id per line)
-    rc, out, err = _run(["flatpak", "list", "--system", "--app", "--columns=application"])
+    # Use application and installation columns to map IDs to scopes
+    rc, out, err = _run(["flatpak", "list", "--app", "--columns=application,installation"])
     if rc == 0 and out.strip():
-        ids = set()
-        for line in out.splitlines():
-            app_id = line.strip()
-            if app_id and app_id.count(".") >= 2:
-                ids.add(app_id)
-        if ids:
-            return ids
-
-    # Strategy 2: plain flatpak list --app (tab-separated table, app-id in col 1)
-    rc, out, err = _run(["flatpak", "list", "--system", "--app"])
-    if rc == 0 and out.strip():
-        ids = set()
+        installed_map = {}
         for line in out.splitlines():
             parts = line.split("\t")
             if len(parts) >= 2:
-                app_id = parts[1].strip()
+                app_id = parts[0].strip()
+                scope  = parts[1].strip()
                 if app_id and app_id.count(".") >= 2:
-                    ids.add(app_id)
-        return ids
+                    installed_map[app_id] = scope
+        return installed_map
 
-    return set()
+    return {}
 
 
 def _get_updateable_ids() -> set:
     """
     Return a set of Flatpak app-ids that have updates available.
-    Uses `flatpak remote-ls --updates`.
+    Uses `flatpak remote-ls --updates` for both system and user scopes.
     """
     import subprocess
-    try:
-        # --columns=application gives just the IDs of updateable packages
-        r = subprocess.run(
-            ["flatpak", "remote-ls", "--system", "--updates", "--columns=application"],
-            capture_output=True, text=True, timeout=15
-        )
-        if r.returncode == 0 and r.stdout.strip():
-            ids = set()
-            for line in r.stdout.splitlines():
-                app_id = line.strip()
-                if app_id and app_id.count(".") >= 2:
-                    ids.add(app_id)
-            return ids
-    except Exception as e:
-        if "--debug" in sys.argv:
-            print(f"[DEBUG] flatpak: Failed to get updateable IDs: {e}")
-    return set()
+    ids = set()
+    for scope in ["--system", "--user"]:
+        try:
+            # --columns=application gives just the IDs of updateable packages
+            r = subprocess.run(
+                ["flatpak", "remote-ls", scope, "--updates", "--columns=application"],
+                capture_output=True, text=True, timeout=15
+            )
+            if r.returncode == 0 and r.stdout.strip():
+                for line in r.stdout.splitlines():
+                    app_id = line.strip()
+                    if app_id and app_id.count(".") >= 2:
+                        ids.add(app_id)
+        except Exception as e:
+            if "--debug" in sys.argv:
+                print(f"[DEBUG] flatpak: Failed to get updateable IDs for {scope}: {e}")
+    return ids
 
 
 # ---------------------------------------------------------------------------
@@ -311,7 +301,7 @@ class AppstreamIndex:
 
     def __init__(self):
         self._index          = {}   # app_id -> dict
-        self._installed_ids  = set() # app_ids currently installed
+        self._installed_map  = {}   # app_id -> scope (system/user)
         self._updateable_ids = set() # app_ids with updates available
         self._ready          = False
         self._lock           = threading.Lock()
@@ -356,12 +346,12 @@ class AppstreamIndex:
                             if app_id not in index:
                                 index[app_id] = entry
 
-                installed_ids  = _get_installed_ids()
+                installed_map  = _get_installed_ids()
                 updateable_ids = _get_updateable_ids()
 
                 with self._lock:
                     self._index          = index
-                    self._installed_ids  = installed_ids
+                    self._installed_map  = installed_map
                     self._updateable_ids = updateable_ids
                     self._ready          = True
                 self._ready_event.set()
@@ -378,15 +368,15 @@ class AppstreamIndex:
 
     def refresh_installed(self, on_done=None):
         """
-        Re-run `flatpak list` and update the installed set in the background.
+        Re-run `flatpak list` and update the installed map in the background.
         Calls on_done() (no args) on the same background thread when complete.
         Call this after an install or remove operation completes.
         """
         def worker():
-            installed_ids  = _get_installed_ids()
+            installed_map  = _get_installed_ids()
             updateable_ids = _get_updateable_ids()
             with self._lock:
-                self._installed_ids  = installed_ids
+                self._installed_map  = installed_map
                 self._updateable_ids = updateable_ids
             if on_done:
                 on_done()
@@ -402,14 +392,14 @@ class AppstreamIndex:
         with self._lock:
             if not self._ready:
                 return []
-            installed_ids  = self._installed_ids
+            installed_map  = self._installed_map
             updateable_ids = self._updateable_ids
             # We want to show everything that is installed, even if it's a child/plugin
             results = []
-            for app_id in installed_ids:
+            for app_id, scope in installed_map.items():
                 entry = self._index.get(app_id)
                 if entry:
-                    results.append(self._to_pkg(entry, installed_ids, updateable_ids))
+                    results.append(self._to_pkg(entry, installed_map, updateable_ids))
                 else:
                     # Not in appstream index? Still show it as a basic entry
                     results.append({
@@ -425,6 +415,7 @@ class AppstreamIndex:
                         "description":           "",
                         "_flatpak_label":        app_id,
                         "_flatpak":              True,
+                        "_flatpak_scope":        scope,
                     })
             return results
 
@@ -455,7 +446,7 @@ class AppstreamIndex:
         with self._lock:
             if not self._ready:
                 return []
-            installed_ids  = self._installed_ids
+            installed_map  = self._installed_map
             updateable_ids = self._updateable_ids
             for entry in self._index.values():
                 haystack = (entry["app_id"] + " " + entry["name"]).lower()
@@ -477,14 +468,15 @@ class AppstreamIndex:
                 if parent != app_id
             )
             if not is_child:
-                results.append(self._to_pkg(entry, installed_ids, updateable_ids))
+                results.append(self._to_pkg(entry, installed_map, updateable_ids))
 
         return results
 
-    def _to_pkg(self, entry: dict, installed_ids: set, updateable_ids: set) -> dict:
+    def _to_pkg(self, entry: dict, installed_map: dict, updateable_ids: set) -> dict:
         """Convert an index entry to the standard package dict shape."""
         app_id    = entry["app_id"]
-        installed = app_id in installed_ids
+        installed = app_id in installed_map
+        scope     = installed_map.get(app_id)
 
         # Pull the raw string, defaulting to "Flatpak"
         raw_category = entry.get("category", "Flatpak")
@@ -508,6 +500,7 @@ class AppstreamIndex:
             "screenshots":           entry.get("screenshots", []),
             "_flatpak_label":        entry["name"],
             "_flatpak":              True,
+            "_flatpak_scope":        scope,
         }
 
 
@@ -588,8 +581,16 @@ class FlatpakOperations:
         return ["flatpak", "install", "--system", "-y", "--noninteractive", "flathub", app_id]
 
     @staticmethod
-    def build_remove_command(app_id: str) -> list:
-        return ["flatpak", "remove", "--system", "-y", "--noninteractive", app_id]
+    def build_remove_command(app_id: str, scope: str = "system") -> list:
+        # Use detected scope if provided
+        scope_flag = "--user" if scope == "user" else "--system"
+        return ["flatpak", "remove", scope_flag, "-y", "--noninteractive", app_id]
+
+    @staticmethod
+    def build_update_command(app_id: str, scope: str = "system") -> list:
+        # Use detected scope if provided
+        scope_flag = "--user" if scope == "user" else "--system"
+        return ["flatpak", "update", scope_flag, "-y", "--noninteractive", app_id]
 
     @staticmethod
     def run_installation(command_runner_realtime, log_callback, on_finish_callback, app_id: str):
@@ -601,9 +602,18 @@ class FlatpakOperations:
         )
 
     @staticmethod
-    def run_removal(command_runner_realtime, log_callback, on_finish_callback, app_id: str):
+    def run_removal(command_runner_realtime, log_callback, on_finish_callback, app_id: str, scope: str = "system"):
         command_runner_realtime(
-            FlatpakOperations.build_remove_command(app_id),
+            FlatpakOperations.build_remove_command(app_id, scope),
+            require_root=False,
+            on_line_received=log_callback,
+            on_finished=on_finish_callback,
+        )
+
+    @staticmethod
+    def run_update(command_runner_realtime, log_callback, on_finish_callback, app_id: str, scope: str = "system"):
+        command_runner_realtime(
+            FlatpakOperations.build_update_command(app_id, scope),
             require_root=False,
             on_line_received=log_callback,
             on_finished=on_finish_callback,
