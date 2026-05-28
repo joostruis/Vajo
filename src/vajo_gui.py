@@ -487,7 +487,7 @@ class PackageDetailsPopup(Gtk.Window):
             # Use centralized PackageDetails to fetch definition.yaml (handles elevation)
             return PackageDetails.get_definition_yaml(self.run_command_sync, repository, category, name, version)
         except Exception as e:
-            print("Error loading definition.yaml:", e)
+            print("Error loading definition.yaml:", e, file=sys.stderr)
             return None
 
     def on_hover_cursor(self, widget, event):
@@ -763,7 +763,7 @@ class SearchApp(Gtk.Window):
                 self.installed_packages_cache = new_cache
                 self.cache_initialized = True
         except Exception as e:
-            print(f"Error refreshing installed packages cache: {e}")
+            print(f"Error refreshing installed packages cache: {e}", file=sys.stderr)
             with self.cache_lock:
                 self.installed_packages_cache = {}
 
