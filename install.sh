@@ -9,6 +9,9 @@ install -Dm644 data/vajo.png $PACKAGE_DIR/usr/share/pixmaps/vajo.png
 # Install desktop entry
 install -Dm644 data/vajo.desktop $PACKAGE_DIR/usr/share/applications/vajo.desktop
 
+# Install AppStream metadata
+install -Dm644 data/org.mocaccino.vajo.metainfo.xml $PACKAGE_DIR/usr/share/metainfo/org.mocaccino.vajo.metainfo.xml
+
 # Install executables
 install -Dm755 src/vajo_tui.py $PACKAGE_DIR/usr/bin/vajo_tui.py
 install -Dm755 src/vajo_gui.py $PACKAGE_DIR/usr/bin/vajo_gui.py

@@ -266,17 +266,17 @@ class PackageDetailsPopup(Gtk.Window):
             homepage_url = package_info.get("homepage", "") or "https://flathub.org/apps/{}".format(name)
             add_left(3, "Homepage:", self._make_uri_label(homepage_url), top_align=True)
 
-            add_right(next_right_row, _("Repository:"), self._make_detail_label(repository))
+            add_right(next_right_row, "Repository:", self._make_detail_label(repository))
             next_right_row += 1
 
             description = package_info.get("description", "")
             if description:
-                add_right(next_right_row, _("Description:"), self._make_detail_label(description))
+                add_right(next_right_row, "Description:", self._make_detail_label(description))
                 next_right_row += 1
 
             license_ = package_info.get("license", "")
             if license_:
-                add_right(next_right_row, _("License:"), self._make_detail_label(license_))
+                add_right(next_right_row, "License:", self._make_detail_label(license_))
                 next_right_row += 1
 
             # Screenshots for Flatpaks
@@ -315,13 +315,13 @@ class PackageDetailsPopup(Gtk.Window):
 
                 next_right_row = 0
                 if repository:
-                    add_right(next_right_row, _("Repository:"), self._make_detail_label(repository))
+                    add_right(next_right_row, "Repository:", self._make_detail_label(repository))
                     next_right_row += 1
                 if description:
-                    add_right(next_right_row, _("Description:"), self._make_detail_label(description))
+                    add_right(next_right_row, "Description:", self._make_detail_label(description))
                     next_right_row += 1
                 if license_:
-                    add_right(next_right_row, _("License:"), self._make_detail_label(license_))
+                    add_right(next_right_row, "License:", self._make_detail_label(license_))
                     next_right_row += 1
 
         hbox.pack_start(left_grid, True, True, 0)
@@ -1212,7 +1212,7 @@ class SearchApp(Gtk.Window):
             self._flatpak_appids[("flatpak", display_name)] = name
 
         self.liststore.append([
-            category, display_name, upgrade_symbol, version,
+            _(category), display_name, upgrade_symbol, version,
             pkg.get("repository", ""), action_id, action_display,
             _("Details"), None, desc,
         ])

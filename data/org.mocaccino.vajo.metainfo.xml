@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.mocaccino.vajo</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Vajo: a Luet Package Manager Frontend</name>
+  <name xml:lang="de">Luet Paket-Suche</name>
+  <name xml:lang="nl">Vajo: een frontend voor Luet Package Manager</name>
+  <name xml:lang="ro">Căutare pachete Luet</name>
+  <name xml:lang="uk">Vajo: інтерфейс менеджера пакетів Luet</name>
+  <name xml:lang="zh_CN">Vajo：Luet 软件包管理器前端</name>
+  <summary>A graphical and terminal-based frontend for the Luet package manager</summary>
+  <summary xml:lang="de">Luet Paket-Suche</summary>
+  <summary xml:lang="nl">Luet Pakketzoeker</summary>
+  <summary xml:lang="ro">Căutare pachete Luet</summary>
+  <summary xml:lang="uk">Пошук пакетів Luet</summary>
+  <summary xml:lang="zh_CN">Luet 软件包搜索</summary>
+  <description>
+    <p>
+      Vajo is a powerful yet simple package manager frontend for Luet, designed for MocaccinoOS.
+      It provides both a graphical (GTK) and a terminal (ncurses) interface to manage your system.
+    </p>
+    <ul>
+      <li>Search for packages in Luet repositories and Flathub</li>
+      <li>Install, remove and upgrade packages</li>
+      <li>Perform full system upgrades and rollbacks</li>
+      <li>Manage pinned system snapshots</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">vajo.desktop</launchable>
+  <url type="homepage">https://github.com/MocaccinoOS/vajo</url>
+  <categories>
+    <category>Utility</category>
+    <category>System</category>
+    <category>Settings</category>
+  </categories>
+  <provides>
+    <binary>vajo-gui</binary>
+    <binary>vajo-tui</binary>
+  </provides>
+</component>

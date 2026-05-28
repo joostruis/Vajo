@@ -38,7 +38,7 @@ import sys
 import threading
 import xml.etree.ElementTree as ET
 
-from modules.i18n import _
+from modules.i18n import _, LANGUAGE_CODE
 
 # ---------------------------------------------------------------------------
 # Feature flag
@@ -87,46 +87,78 @@ def _open_appstream(path: str):
 
 def _text_default(element, tag: str) -> str:
     """
-    Return the text of the child element matching `tag` that has no
-    xml:lang attribute (the canonical default-language value).
+    Return the text of the child element matching `tag`, prioritizing the
+    user's current language (LANGUAGE_CODE) with proper fallbacks.
 
     Appstream XML contains many localised siblings:
         <name>GIMP</name>
         <name xml:lang="ru">ГИМП</name>
-        <name xml:lang="de">GIMP</name>
+        <name xml:lang="zh_CN">嘉立创EDA</name>
         ...
-    element.find(tag) returns whichever comes first in document order,
-    which on some systems is a non-English locale entry.
 
     Priority:
-      1. Child with no xml:lang attribute  (unlocalized, always English on Flathub)
-      2. Child with xml:lang="en"
-      3. First child found (last resort)
+      1. Exact match for LANGUAGE_CODE (e.g. 'zh_CN')
+      2. Match for base language if LANGUAGE_CODE is specific (e.g. 'zh' if 'zh_CN')
+      3. No xml:lang attribute (canonical default)
+      4. Match for 'en'
+      5. First available child
     """
     XML_LANG = "{http://www.w3.org/XML/1998/namespace}lang"
-    # Normalise the target tag to its local name for comparison
     target = tag.split("}")[-1] if "}" in tag else tag
 
-    fallback_en  = None
+    # Build priority list of language codes to search for
+    priority = [LANGUAGE_CODE]
+    if "_" in LANGUAGE_CODE:
+        priority.append(LANGUAGE_CODE.split("_")[0])
+    
+    # Regional variants (e.g., zh-Hans, zh-Hant)
+    if LANGUAGE_CODE.startswith("zh"):
+        if "CN" in LANGUAGE_CODE or "Hans" in LANGUAGE_CODE:
+            priority.insert(0, "zh_Hans")
+            priority.insert(1, "zh_Hans_CN")
+        elif "TW" in LANGUAGE_CODE or "HK" in LANGUAGE_CODE or "Hant" in LANGUAGE_CODE:
+            priority.insert(0, "zh_Hant")
+            priority.insert(1, "zh_Hant_TW")
+
+    matches = {} # lang -> element
+    fallback_none = None
     fallback_any = None
 
     for child in element:
         local = child.tag.split("}")[-1] if "}" in child.tag else child.tag
         if local != target:
             continue
+        
         lang = child.get(XML_LANG)
-        if lang is None:
-            # No xml:lang — this is the canonical default
-            if child.text:
-                return child.text.strip()
-        elif lang == "en" and fallback_en is None:
-            fallback_en = child
-        elif fallback_any is None:
+        if lang:
+            # Normalize appstream lang codes (sometimes they use - instead of _)
+            lang = lang.replace("-", "_")
+            if lang not in matches:
+                matches[lang] = child
+        else:
+            if fallback_none is None:
+                fallback_none = child
+        
+        if fallback_any is None:
             fallback_any = child
 
-    for candidate in (fallback_en, fallback_any):
-        if candidate is not None and candidate.text:
-            return candidate.text.strip()
+    # 1 & 2: Check our priority list
+    for l in priority:
+        if l in matches and matches[l].text:
+            return matches[l].text.strip()
+    
+    # 3: Check unlocalized (default)
+    if fallback_none is not None and fallback_none.text:
+        return fallback_none.text.strip()
+    
+    # 4: Check 'en' explicitly
+    if "en" in matches and matches["en"].text:
+        return matches["en"].text.strip()
+    
+    # 5: Last resort
+    if fallback_any is not None and fallback_any.text:
+        return fallback_any.text.strip()
+    
     return ""
 
 
@@ -483,7 +515,7 @@ class AppstreamIndex:
 
         return {
             # ---- fields the GUI reads from the liststore ----
-            "category":              _(raw_category),
+            "category":              raw_category,
             "name":                  app_id,
             "upgrade_symbol":        "↑" if app_id in updateable_ids else "",
             "version":               entry.get("version", ""),
@@ -618,3 +650,21 @@ class FlatpakOperations:
             on_line_received=log_callback,
             on_finished=on_finish_callback,
         )
+
+# ---------------------------------------------------------------------------
+# Dummy strings for translation of common AppStream categories.
+# These are not called at runtime but picked up by xgettext.
+# ---------------------------------------------------------------------------
+def _dummy_strings():
+    _("AudioVideo")
+    _("Development")
+    _("Education")
+    _("Game")
+    _("Graphics")
+    _("Network")
+    _("Office")
+    _("Science")
+    _("Settings")
+    _("System")
+    _("Utility")
+    _("Flatpak")

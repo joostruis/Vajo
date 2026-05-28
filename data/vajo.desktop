@@ -1,7 +1,18 @@
 [Desktop Entry]
 Name=Vajo: a Luet Package Manager Frontend
+Name[de]=Luet Paket-Suche
+Name[nl]=Vajo: een frontend voor Luet Package Manager
+Name[ro]=Căutare pachete Luet
+Name[uk]=Vajo: інтерфейс менеджера пакетів Luet
+Name[zh_CN]=Vajo：Luet 软件包管理器前端
+Comment=A graphical and terminal-based frontend for the Luet package manager
+Comment[de]=Grafische und Terminal-Oberfläche für den Luet-Paketmanager
+Comment[nl]=Een grafische en terminalfrontend voor de Luet pakketbeheerder
+Comment[ro]=O interfață grafică și în terminal pentru managerul de pachete Luet
+Comment[uk]=Графічний та термінальний інтерфейс для менеджера пакетів Luet
+Comment[zh_CN]=Luet 软件包管理器的图形和终端前端
 Exec=/usr/bin/vajo-gui
 Icon=vajo
 Terminal=false
 Type=Application
-Categories=Utility;
+Categories=Utility;System;Settings;

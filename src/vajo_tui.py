@@ -808,7 +808,10 @@ class LuetTUI:
                 if pkg.get("protected", False):
                     action = _("Protected")
                 elif pkg.get("_flatpak", False):
-                    action = _("Remove") if pkg.get("installed", False) else _("Install")
+                    if upgrade_symbol == "↑":
+                        action = _("Update")
+                    else:
+                        action = _("Remove") if pkg.get("installed", False) else _("Install")
                 elif pkg.get("installed", False) or upgrade_symbol == "↑":
                     action = _("Remove")
                 else:
@@ -1438,7 +1441,7 @@ class LuetTUI:
                 # FIX: Use the processed package data from SearchProcessor
                 # This includes the upgrade_symbol field
                 self.results.append({
-                    "category": pkg.get("category", ""),
+                    "category": _(pkg.get("category", "")),
                     "name": pkg.get("name", ""),
                     "version": pkg.get("version", ""),  # Use the version field from processed data
                     "available_version": pkg.get("version", ""),  # Available version is the same
