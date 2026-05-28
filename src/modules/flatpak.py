@@ -363,12 +363,13 @@ class AppstreamIndex:
                 # --- 2. SILENT APPSTREAM REFRESH ---
                 paths = _find_appstream_files()
                 if not paths:
-                    print("flatpak: AppStream cache missing. Fetching silently...")
+                    if "--debug" in sys.argv:
+                        print("[DEBUG] flatpak: AppStream cache missing, fetching...", flush=True)
                     try:
                         subprocess.run(["flatpak", "update", "--appstream"], capture_output=True)
                         paths = _find_appstream_files()
                     except Exception as e:
-                        print(f"flatpak: Failed to fetch AppStream cache: {e}")
+                        print(f"flatpak: Failed to fetch AppStream cache: {e}", file=sys.stderr)
 
                 # --- 3. STANDARD PARSING ---
                 if paths:
@@ -388,7 +389,7 @@ class AppstreamIndex:
                     self._ready          = True
                 self._ready_event.set()
             except Exception as e:
-                print(f"flatpak: unexpected error in build_async worker: {e}")
+                print(f"flatpak: unexpected error in build_async worker: {e}", file=sys.stderr)
                 with self._lock:
                     self._ready = True
                 self._ready_event.set()
