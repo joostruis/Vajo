@@ -1576,12 +1576,13 @@ class SearchApp(Gtk.Window):
         display_label = self.liststore.get_value(iter_, 1)
         app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
         
-        # Get scope from package_info if available, default to system
-        scope = "system"
+        # Resolve scope once — prefer value carried in package_info, fall back to a lookup
         if package_info and "_flatpak_scope" in package_info:
             scope = package_info["_flatpak_scope"]
-        elif operation in ["remove", "update"]:
+        elif operation in ("remove", "update"):
             scope = self._get_flatpak_scope(app_id)
+        else:
+            scope = "system"
 
         if operation == "install":
             question   = _("Do you want to install {}?").format(display_label)
@@ -1592,8 +1593,6 @@ class SearchApp(Gtk.Window):
             run_op     = lambda cb: FlatpakOperations.run_installation(
                 self.command_runner.run_realtime, self.append_to_log, cb, app_id)
         elif operation == "remove":
-            # Find scope for the app_id
-            scope = self._get_flatpak_scope(app_id)
             question   = _("Do you want to remove {}?").format(display_label)
             secondary  = _("This will remove the Flatpak application.")
             action_msg = _("Removing {}...").format(display_label)
@@ -1602,7 +1601,6 @@ class SearchApp(Gtk.Window):
             run_op     = lambda cb: FlatpakOperations.run_removal(
                 self.command_runner.run_realtime, self.append_to_log, cb, app_id, scope)
         elif operation == "update":
-            scope = self._get_flatpak_scope(app_id)
             question   = _("Do you want to update {}?").format(display_label)
             secondary  = _("This will update the Flatpak application to the latest version.")
             action_msg = _("Updating {}...").format(display_label)
@@ -1643,7 +1641,7 @@ class SearchApp(Gtk.Window):
         try:
             run_op(on_done)
         except Exception as e:
-            print("Exception launching flatpak operation:", e)
+            print("Exception launching flatpak operation:", e, file=sys.stderr)
             self.set_status_message(err_msg)
             self.enable_gui()
             self.stop_spinner()
