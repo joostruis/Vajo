@@ -306,6 +306,14 @@ class PackageFilter:
             "repo-updater/mocaccino-desktop-stable": "Hide desktop repo-updater",
             "repo-updater/mocaccino-community-stable": "Hide desktop repo-updater",
             "kernel-5.9/debian-full": "Old repository, not in use anymore",
+            # Other things we want to hide
+            "system/entities": "Hide entities",
+            "system/entity-apply": "Hide entity-apply",
+            "system/kmod": "Hide kmod",
+            "system/mocaccino-init": "Hide mocaccino-init",
+            "system-profile/default-systemd": "Hide default-systemd",
+            "utils/yip": "Hide yip",
+            "utils/yip-systemd": "Hide yip-systemd",
     }
 
 
