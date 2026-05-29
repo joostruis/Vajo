@@ -775,14 +775,8 @@ class SearchApp(Gtk.Window):
          return SyncInfo.get_last_sync_time()
 
     def get_theme_highlight_color(self):
-        temp_widget = Gtk.Label()
-        style_context = temp_widget.get_style_context()
-        # Fallback for systems where theme_selected_bg_color is not available
-        found, rgba = style_context.lookup_color('theme_selected_bg_color') or (False, None)
-        if found and rgba:
-            r, g, b = int(min(1.0, rgba.red + 0.2) * 255), int(min(1.0, rgba.green + 0.2) * 255), int(min(1.0, rgba.blue + 0.2) * 255)
-            return f"#{r:02x}{g:02x}{b:02x}"
-        return "#e0e0e0"
+        # Warm amber-brown that fits the MocaccinoOS palette
+        return "#e8e8e8"
 
     # ---------------------------------
     # GUI Initialization
@@ -951,10 +945,10 @@ class SearchApp(Gtk.Window):
         # --- TreeView (Results Table) ---
         self.treeview = Gtk.TreeView()
 
-        # ListStore fields (10 total):
+        # ListStore fields (11 total):
         # 0: Category | 1: Name | 2: Upgrade Symbol | 3: Version | 4: Repository |
-        # 5: Action ID | 6: Action Text | 7: Details | 8: Highlight Color | 9: Description (tooltip)
-        self.liststore = Gtk.ListStore(str, str, str, str, str, int, str, str, str, str)
+        # 5: Action ID | 6: Action Text | 7: Details | 8: Highlight Color | 9: Description (tooltip) | 10: Action Color
+        self.liststore = Gtk.ListStore(str, str, str, str, str, int, str, str, str, str, str)
         
         # Wrap liststore in a filter model, then a sort model
         self.filter_model = self.liststore.filter_new()
@@ -995,7 +989,19 @@ class SearchApp(Gtk.Window):
             if fixed_w is not None:
                 col.set_fixed_width(fixed_w)
 
-            if data_index == 2:
+            if data_index == 6:
+                # Action: text with per-action foreground color
+                renderer = Gtk.CellRendererText()
+                renderer.set_property("xalign", 0.5)
+                col = Gtk.TreeViewColumn(_("Action"), renderer, text=6)
+                col.set_sizing(Gtk.TreeViewColumnSizing.FIXED)
+                col.set_fixed_width(90)
+                col.add_attribute(renderer, "foreground", 10)
+                col.add_attribute(renderer, "cell-background", 8)
+                col.set_resizable(True)
+                self.treeview.append_column(col)
+                continue
+            elif data_index == 2:
                 # Upgrade symbol: narrow, not interactive
                 col.set_expand(False)
                 col.set_resizable(False)
@@ -1007,9 +1013,7 @@ class SearchApp(Gtk.Window):
                 col.set_max_width(280)
                 col.set_sort_column_id(data_index)
                 col.set_clickable(True)
-            elif data_index == 7:
-                # Details: resizable but not sortable
-                col.set_resizable(True)
+
             else:
                 col.set_resizable(True)
                 col.set_sort_column_id(data_index)
@@ -1090,6 +1094,9 @@ class SearchApp(Gtk.Window):
             #output_log text { font-family: monospace; }
             .dimmed { color: rgba(128, 128, 128, 0.8); }
             .error { color: darkorange; }
+            treeview:selected { background-color: #e8e8e8; color: #1a1a1a; }
+            treeview:selected:focus { background-color: #e8e8e8; color: #1a1a1a; }
+
         """)
         Gtk.StyleContext.add_provider_for_screen(
             Gdk.Screen.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER
@@ -1284,13 +1291,13 @@ class SearchApp(Gtk.Window):
         is_flatpak     = pkg.get("_flatpak", False)
 
         if PackageFilter.is_package_protected(category, name):
-            action_id, action_display = self.ACTION_PROTECTED,         _("Protected")
+            action_id, action_display, action_color = self.ACTION_PROTECTED,        _("Protected"), "#888888"
         elif is_flatpak:
-            action_id, action_display = self.ACTION_FLATPAK_READONLY,  _("Remove") if installed else _("Install")
+            action_id, action_display, action_color = self.ACTION_FLATPAK_READONLY, _("Remove") if installed else _("Install"), "#c0392b" if installed else "#27ae60"
         elif installed:
-            action_id, action_display = self.ACTION_REMOVE,            _("Remove")
+            action_id, action_display, action_color = self.ACTION_REMOVE,           _("Remove"), "#c0392b"
         else:
-            action_id, action_display = self.ACTION_INSTALL,           _("Install")
+            action_id, action_display, action_color = self.ACTION_INSTALL,          _("Install"), "#27ae60"
 
         desc = pkg.get("description", "")
         if not desc and self.desc_index.is_ready:
@@ -1305,7 +1312,7 @@ class SearchApp(Gtk.Window):
         self.liststore.append([
             _(category), display_name, upgrade_symbol, version,
             pkg.get("repository", ""), action_id, action_display,
-            _("Details"), None, desc,
+            _("Details"), None, desc, action_color,
         ])
         return True
 
@@ -1472,6 +1479,19 @@ class SearchApp(Gtk.Window):
         child_iter = self.filter_model.convert_iter_to_child_iter(filter_iter)
         return self.liststore.get_path(child_iter)
 
+    def _restore_action_color(self, ls_path):
+        """Restore the action foreground color after a hover is cleared."""
+        action_id = self.liststore[ls_path][5]
+        if action_id == self.ACTION_INSTALL:
+            color = "#27ae60"
+        elif action_id == self.ACTION_REMOVE:
+            color = "#c0392b"
+        elif action_id == self.ACTION_PROTECTED:
+            color = "#888888"
+        else:
+            color = "#27ae60" if self.liststore[ls_path][6] == _("Install") else "#c0392b"
+        self.liststore[ls_path][10] = color
+
     def on_treeview_motion(self, treeview, event):
         hit = treeview.get_path_at_pos(int(event.x), int(event.y))
 
@@ -1482,7 +1502,8 @@ class SearchApp(Gtk.Window):
                 try:
                     ls_path = self._sort_path_to_liststore_path(self.highlighted_row_path)
                     if ls_path:
-                        self.liststore[ls_path][8] = None  # Index 8 is Highlight Color
+                        self.liststore[ls_path][8] = None   # clear row highlight
+                        self._restore_action_color(ls_path) # restore action color
                 except (ValueError, TypeError):
                     pass  # Row might have been deleted
 
@@ -1491,6 +1512,7 @@ class SearchApp(Gtk.Window):
                     ls_path = self._sort_path_to_liststore_path(new_sort_path)
                     if ls_path:
                         self.liststore[ls_path][8] = self.HIGHLIGHT_COLOR
+                        self.liststore[ls_path][10] = None  # hide action color on hover
                 except (ValueError, TypeError):
                     pass
 
@@ -1511,7 +1533,8 @@ class SearchApp(Gtk.Window):
             try:
                 ls_path = self._sort_path_to_liststore_path(self.highlighted_row_path)
                 if ls_path:
-                    self.liststore[ls_path][8] = None  # Index 8 is Highlight Color
+                    self.liststore[ls_path][8] = None   # clear row highlight
+                    self._restore_action_color(ls_path) # restore action color
             except (ValueError, TypeError):
                 pass
             self.highlighted_row_path = None
