@@ -130,6 +130,7 @@ class RollbackManager:
         ("/usr/share/vajo/modules/flatpak.py",      "modules/flatpak.py"),
         ("/usr/share/vajo/modules/i18n.py",         "modules/i18n.py"),
         ("/usr/share/vajo/modules/rollback.py",     "modules/rollback.py"),
+        ("/usr/share/vajo/modules/system.py",       "modules/system.py"),
     ]
 
     @staticmethod
