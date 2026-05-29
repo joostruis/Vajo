@@ -56,6 +56,7 @@ try:
         DescriptionIndex,
         RollbackManager,
         Debug,
+        SystemInfoProvider,
         _,
         ngettext,
     )
@@ -166,7 +167,7 @@ class Menu:
         return [
             [_("Update repositories"), _("Full system upgrade"), _("Installed packages"), _("Check system"), None, False, _("Quit")],
             [_("Preferences")],
-            [_("Documentation"), _("About")]
+            [_("Documentation"), _("System information"), _("About")]
         ]
 
     @classmethod
@@ -337,6 +338,8 @@ class Menu:
             self.app.run_preferences()
         elif item == _("Documentation"):
             self.app.show_message(_("Info"), _("Opening luet documentation (URL TBD)"))
+        elif item == _("System information"):
+            self.app.run_system_information()
         elif item == _("About"):
             about_text = AboutInfo.get_ncurses_about_text()
             self.app.show_message(_("About"), about_text)
@@ -1367,6 +1370,35 @@ class LuetTUI:
 
         self.search_query = _("installed")
         self.on_search_finished({"packages": packages})
+
+    def run_system_information(self):
+        """Fetch and display system information in a popup."""
+        self.set_status(_("Gathering system information..."))
+        self.draw()
+
+        # Spin in main thread for a moment while gathering (gathering is fast but has subprocesses)
+        # We'll use a thread for gathering to keep spinner alive if it takes > 100ms
+        def gatherer(q):
+            info = SystemInfoProvider.gather_info()
+            q.put(info)
+
+        q = queue.Queue()
+        threading.Thread(target=gatherer, args=(q,), daemon=True).start()
+
+        title = _("System Information")
+        while q.empty():
+            self.stdscr.erase()
+            self.draw()
+            time.sleep(0.05)
+
+        info = q.get()
+        self.set_status(_("Ready"))
+
+        formatted_info = ""
+        for label, value in info:
+            formatted_info += f"{label:<22} {value}\n"
+
+        self.show_message(title, formatted_info)
 
     def run_search(self, query):
         self.set_status(_("Searching for {}...").format(query))

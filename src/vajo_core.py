@@ -50,6 +50,7 @@ if _CORE_DIR not in sys.path:
 
 from modules.i18n import _, ngettext
 from modules.rollback import RollbackManager
+from modules.system import SystemInfoProvider
 
 # -------------------------
 # PackageState Class

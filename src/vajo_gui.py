@@ -11,6 +11,8 @@ import webbrowser
 import gettext
 import locale
 import signal
+import subprocess
+import socket
 
 try:
     from packaging import version as pkg_version
@@ -70,7 +72,8 @@ try:
         CommandRunner, RepositoryUpdater, SystemChecker, SystemUpgrader, 
         CacheCleaner, PackageOperations, PackageSearcher, SyncInfo, 
         PackageFilter, AboutInfo, Spinner, PackageDetails, PackageState, 
-        SearchProcessor, RollbackManager, DescriptionIndex, Debug
+        SearchProcessor, RollbackManager, DescriptionIndex, Debug,
+        SystemInfoProvider
     )
 except ImportError as e:
     print("FATAL: vajo_core.py not found in local directory or /usr/share/vajo.")
@@ -487,7 +490,7 @@ class PackageDetailsPopup(Gtk.Window):
             # Use centralized PackageDetails to fetch definition.yaml (handles elevation)
             return PackageDetails.get_definition_yaml(self.run_command_sync, repository, category, name, version)
         except Exception as e:
-            print("Error loading definition.yaml:", e, file=sys.stderr)
+            print("Error loading definition.yaml:", e)
             return None
 
     def on_hover_cursor(self, widget, event):
@@ -763,7 +766,7 @@ class SearchApp(Gtk.Window):
                 self.installed_packages_cache = new_cache
                 self.cache_initialized = True
         except Exception as e:
-            print(f"Error refreshing installed packages cache: {e}", file=sys.stderr)
+            print(f"Error refreshing installed packages cache: {e}")
             with self.cache_lock:
                 self.installed_packages_cache = {}
 
@@ -815,6 +818,10 @@ class SearchApp(Gtk.Window):
         quit_item.connect("activate", lambda w: self.get_application().quit())
         file_menu.append(quit_item)
         help_menu = Gtk.Menu()
+        system_info_item = Gtk.MenuItem(label=_("System Information"))
+        system_info_item.connect("activate", self.show_system_info)
+        help_menu.append(system_info_item)
+        help_menu.append(Gtk.SeparatorMenuItem())
         documentation_item = Gtk.MenuItem(label=_("Documentation"))
         documentation_item.connect("activate", self.show_documentation)
         help_menu.append(documentation_item)
@@ -834,6 +841,58 @@ class SearchApp(Gtk.Window):
         menu_bar.append(file_menu_item)
         menu_bar.append(edit_menu_item)
         menu_bar.append(help_menu_item)
+
+    def show_system_info(self, widget):
+        self.search_box.hide()
+        self.content_stack.set_visible_child_name("sysinfo")
+        self.sysinfo_grid_sw.hide()
+        self.sysinfo_spinner_box.show()
+        self.sysinfo_spinner.start()
+        
+        def gather_and_update():
+            items = SystemInfoProvider.gather_info()
+            GLib.idle_add(self._update_sysinfo_ui, items)
+
+        threading.Thread(target=gather_and_update, daemon=True).start()
+
+    def _update_sysinfo_ui(self, items):
+        self.sysinfo_spinner.stop()
+        self.sysinfo_spinner_box.hide()
+        
+        # Clear previous grid if any
+        child = self.sysinfo_grid_sw.get_child()
+        if child:
+            self.sysinfo_grid_sw.remove(child)
+
+        grid = Gtk.Grid()
+        grid.set_column_spacing(20)
+        grid.set_row_spacing(15)
+        grid.set_margin_start(40)
+        grid.set_margin_end(40)
+        grid.set_margin_top(40)
+        grid.set_margin_bottom(40)
+        grid.set_halign(Gtk.Align.CENTER)
+        grid.set_valign(Gtk.Align.START)
+
+        for i, (label_text, value_text) in enumerate(items):
+            lbl = Gtk.Label()
+            lbl.set_markup(f"<b>{label_text}</b>")
+            lbl.set_halign(Gtk.Align.END)
+            grid.attach(lbl, 0, i, 1, 1)
+
+            val = Gtk.Label(label=value_text)
+            val.set_halign(Gtk.Align.START)
+            val.set_selectable(True)
+            grid.attach(val, 1, i, 1, 1)
+
+        grid.show_all()
+        self.sysinfo_grid_sw.add(grid)
+        self.sysinfo_grid_sw.show()
+        return False
+
+    def on_sysinfo_back_clicked(self, widget):
+        self.search_box.show()
+        self.content_stack.set_visible_child_name("results")
 
     def show_documentation(self, widget):
         webbrowser.open("https://www.mocaccino.org/docs/")
@@ -868,7 +927,7 @@ class SearchApp(Gtk.Window):
         top_bar.pack_end(self.sync_info_label, False, False, 0)
 
         # --- Search Bar ---
-        search_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        self.search_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
         self.search_entry = Gtk.Entry()
         self.search_entry.set_placeholder_text(_("Enter package name"))
         self.search_entry.connect("activate", self.on_search_clicked)
@@ -882,9 +941,9 @@ class SearchApp(Gtk.Window):
         self.search_button = Gtk.Button(label=_("Search"))
         self.search_button.connect("clicked", self.on_search_clicked)
 
-        search_box.pack_start(self.search_entry, True, True, 0)
-        search_box.pack_start(self.advanced_search_checkbox, False, False, 0)
-        search_box.pack_start(self.search_button, False, False, 0)
+        self.search_box.pack_start(self.search_entry, True, True, 0)
+        self.search_box.pack_start(self.advanced_search_checkbox, False, False, 0)
+        self.search_box.pack_start(self.search_button, False, False, 0)
 
         # --- TreeView (Results Table) ---
         self.treeview = Gtk.TreeView()
@@ -976,6 +1035,33 @@ class SearchApp(Gtk.Window):
         scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         scrolled.add(self.treeview)
 
+        # --- System Info pane (shown in place of results) ---
+        self.sysinfo_pane = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        
+        self.sysinfo_spinner_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        self.sysinfo_spinner_box.set_halign(Gtk.Align.CENTER)
+        self.sysinfo_spinner_box.set_valign(Gtk.Align.CENTER)
+        self.sysinfo_spinner = Gtk.Spinner()
+        self.sysinfo_spinner_box.pack_start(self.sysinfo_spinner, False, False, 0)
+        self.sysinfo_grid_sw = Gtk.ScrolledWindow()
+        self.sysinfo_grid_sw.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
+        self.sysinfo_pane.pack_start(self.sysinfo_spinner_box, True, True, 0)
+        self.sysinfo_pane.pack_start(self.sysinfo_grid_sw, True, True, 0)
+
+        # Footer with Back button (bottom right)
+        self.sysinfo_footer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        self.sysinfo_back_btn = Gtk.Button.new_with_label(_("Back to Search"))
+        self.sysinfo_back_btn.connect("clicked", self.on_sysinfo_back_clicked)
+        self.sysinfo_footer.pack_end(self.sysinfo_back_btn, False, False, 0)
+        self.sysinfo_pane.pack_start(self.sysinfo_footer, False, False, 0)
+
+        # Stack switches between results treeview and system info pane
+        self.content_stack = Gtk.Stack()
+        self.content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+        self.content_stack.set_transition_duration(150)
+        self.content_stack.add_named(scrolled, "results")
+        self.content_stack.add_named(self.sysinfo_pane, "sysinfo")
+
         # --- Output Log (Expander) ---
         self.output_expander = Gtk.Expander(label=_("Toggle output log"))
         self.output_expander.connect("enter-notify-event", self.on_expander_hover)
@@ -1017,8 +1103,8 @@ class SearchApp(Gtk.Window):
         spacer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=False)
         spacer.set_size_request(-1, 10)
         main_vbox.pack_start(spacer, False, False, 0)
-        main_vbox.pack_start(search_box, False, False, 0)
-        main_vbox.pack_start(scrolled, True, True, 0)
+        main_vbox.pack_start(self.search_box, False, False, 0)
+        main_vbox.pack_start(self.content_stack, True, True, 0)
         main_vbox.pack_start(self.output_expander, False, False, 0)
 
         self.add(main_vbox)
@@ -1044,6 +1130,7 @@ class SearchApp(Gtk.Window):
         self.search_button.set_sensitive(sensitive)
         self.treeview.set_sensitive(sensitive)
         self.treeview.set_has_tooltip(sensitive)
+        self.sysinfo_pane.set_sensitive(sensitive)
         for item in self.menu_bar.get_children():
             if isinstance(item, Gtk.MenuItem): item.set_sensitive(sensitive)
 
@@ -1090,6 +1177,8 @@ class SearchApp(Gtk.Window):
             packages.extend(self.appstream_index.get_installed_packages())
         self.last_search = _("installed")
         self.search_entry.set_text("")
+        self.search_box.show()
+        self.content_stack.set_visible_child_name("results")
         self.clear_liststore()
         self.on_search_finished({"packages": packages})
 
@@ -1112,16 +1201,15 @@ class SearchApp(Gtk.Window):
             return
         
         advanced = self.advanced_search_checkbox.get_active()
-        search_cmd = ["luet", "search", "-o", "json", 
-                    "--files" if advanced else "-q", 
+        search_cmd = ["luet", "search", "-o", "json",
+                    "--files" if advanced else "-q",
                     sanitized_name]
-        
+
         self.last_search = sanitized_name
         self.clear_liststore()
         self.start_spinner(_("Searching for {}...").format(sanitized_name))
         self.disable_gui()
-        self.search_thread = threading.Thread(target=self.run_search, args=(search_cmd, advanced), daemon=True)
-        self.search_thread.start()
+        self.start_search_thread(search_cmd, advanced)
 
     def run_search(self, search_command, advanced=False):
         """ Worker thread: Calls core logic """
@@ -1576,13 +1664,12 @@ class SearchApp(Gtk.Window):
         display_label = self.liststore.get_value(iter_, 1)
         app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
         
-        # Resolve scope once — prefer value carried in package_info, fall back to a lookup
+        # Get scope from package_info if available, default to system
+        scope = "system"
         if package_info and "_flatpak_scope" in package_info:
             scope = package_info["_flatpak_scope"]
-        elif operation in ("remove", "update"):
+        elif operation in ["remove", "update"]:
             scope = self._get_flatpak_scope(app_id)
-        else:
-            scope = "system"
 
         if operation == "install":
             question   = _("Do you want to install {}?").format(display_label)
@@ -1593,6 +1680,8 @@ class SearchApp(Gtk.Window):
             run_op     = lambda cb: FlatpakOperations.run_installation(
                 self.command_runner.run_realtime, self.append_to_log, cb, app_id)
         elif operation == "remove":
+            # Find scope for the app_id
+            scope = self._get_flatpak_scope(app_id)
             question   = _("Do you want to remove {}?").format(display_label)
             secondary  = _("This will remove the Flatpak application.")
             action_msg = _("Removing {}...").format(display_label)
@@ -1601,6 +1690,7 @@ class SearchApp(Gtk.Window):
             run_op     = lambda cb: FlatpakOperations.run_removal(
                 self.command_runner.run_realtime, self.append_to_log, cb, app_id, scope)
         elif operation == "update":
+            scope = self._get_flatpak_scope(app_id)
             question   = _("Do you want to update {}?").format(display_label)
             secondary  = _("This will update the Flatpak application to the latest version.")
             action_msg = _("Updating {}...").format(display_label)
@@ -1641,7 +1731,7 @@ class SearchApp(Gtk.Window):
         try:
             run_op(on_done)
         except Exception as e:
-            print("Exception launching flatpak operation:", e, file=sys.stderr)
+            print("Exception launching flatpak operation:", e)
             self.set_status_message(err_msg)
             self.enable_gui()
             self.stop_spinner()
@@ -1727,6 +1817,8 @@ class SearchApp(Gtk.Window):
         self.disable_gui()
 
     def start_search_thread(self, search_cmd, advanced=False):
+        self.search_box.show()
+        self.content_stack.set_visible_child_name("results")
         self.search_thread = threading.Thread(target=self.run_search, args=(search_cmd, advanced), daemon=True)
         self.search_thread.start()
 
