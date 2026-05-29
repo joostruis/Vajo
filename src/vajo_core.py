@@ -148,7 +148,7 @@ class AboutInfo:
         
     @staticmethod
     def get_version():
-        return "0.9.5.4"
+        return "0.9.5.3"
 
     @staticmethod
     def get_copyright():
@@ -333,6 +333,8 @@ class PackageFilter:
         :param name: Package name
         :return: True if package is protected, False otherwise
         """
+        if category == "kernel":
+            return True
         return "{}/{}".format(category, name) in PackageFilter._PROTECTED_PKGS
 
     @staticmethod
@@ -344,6 +346,8 @@ class PackageFilter:
         :param name: Package name
         :return: Protection message or None if not protected
         """
+        if category == "kernel":
+            return "Kernel packages are protected and can't be removed"
         return PackageFilter._PROTECTED_PKGS.get("{}/{}".format(category, name))
 
 
