@@ -78,6 +78,27 @@ def _find_appstream_files() -> list:
     return paths
 
 
+def _remote_name_from_path(path: str) -> str:
+    """
+    Extract the remote (repository) name from an appstream cache path.
+
+    Both system and user paths look like:
+        /var/lib/flatpak/appstream/<remote>/<arch>/active/appstream.xml*
+        ~/.local/share/flatpak/appstream/<remote>/<arch>/active/appstream.xml*
+
+    The component two levels above 'active/' is the remote name.
+    Falls back to 'Flatpak' if the structure is unexpected.
+    """
+    try:
+        # Normalize and split
+        parts = os.path.normpath(path).split(os.sep)
+        # Find the index of 'active' and go back two levels: active/<arch>/<remote>
+        active_idx = parts.index("active")
+        return parts[active_idx - 2]
+    except (ValueError, IndexError):
+        return "Flatpak"
+
+
 def _open_appstream(path: str):
     """Open an appstream file for reading, handling .gz transparently."""
     if path.endswith(".gz"):
@@ -162,10 +183,10 @@ def _text_default(element, tag: str) -> str:
     return ""
 
 
-def _parse_appstream_file(path: str) -> list:
+def _parse_appstream_file(path: str, remote: str = "Flatpak") -> list:
     """
     Parse one appstream XML file and return a list of dicts with keys:
-        app_id, name, summary, version
+        app_id, name, summary, version, remote
     Only components that have a flatpak bundle are included.
     """
     entries = []
@@ -248,6 +269,7 @@ def _parse_appstream_file(path: str) -> list:
                         "homepage": homepage,
                         "category": category_name,
                         "screenshots": screenshots,
+                        "remote":  remote,
                     })
 
                 elem.clear()   # free memory as we go
@@ -264,8 +286,10 @@ def _parse_appstream_file(path: str) -> list:
 
 def _get_installed_ids() -> dict:
     """
-    Return a dict mapping installed Flatpak app-ids to their installation scope
-    (e.g. {'com.spotify.Client': 'user', 'org.gimp.GIMP': 'system'}).
+    Return a dict mapping installed Flatpak app-ids to a tuple of
+    (installation_scope, origin_remote), e.g.:
+        {'com.spotify.Client': ('user', 'flathub'),
+         'org.gimp.GIMP':      ('system', 'flathub')}
     """
     import subprocess
 
@@ -276,8 +300,8 @@ def _get_installed_ids() -> dict:
         except Exception as e:
             return -1, "", str(e)
 
-    # Use application and installation columns to map IDs to scopes
-    rc, out, err = _run(["flatpak", "list", "--app", "--columns=application,installation"])
+    # application, installation (system/user), origin (remote name)
+    rc, out, err = _run(["flatpak", "list", "--app", "--columns=application,installation,origin"])
     if rc == 0 and out.strip():
         installed_map = {}
         for line in out.splitlines():
@@ -285,8 +309,9 @@ def _get_installed_ids() -> dict:
             if len(parts) >= 2:
                 app_id = parts[0].strip()
                 scope  = parts[1].strip()
+                origin = parts[2].strip() if len(parts) >= 3 else ""
                 if app_id and app_id.count(".") >= 2:
-                    installed_map[app_id] = scope
+                    installed_map[app_id] = (scope, origin)
         return installed_map
 
     return {}
@@ -374,7 +399,8 @@ class AppstreamIndex:
                 # --- 3. STANDARD PARSING ---
                 if paths:
                     for path in paths:
-                        for entry in _parse_appstream_file(path):
+                        remote = _remote_name_from_path(path)
+                        for entry in _parse_appstream_file(path, remote):
                             app_id = entry["app_id"]
                             if app_id not in index:
                                 index[app_id] = entry
@@ -429,7 +455,7 @@ class AppstreamIndex:
             updateable_ids = self._updateable_ids
             # We want to show everything that is installed, even if it's a child/plugin
             results = []
-            for app_id, scope in installed_map.items():
+            for app_id, (scope, origin) in installed_map.items():
                 entry = self._index.get(app_id)
                 if entry:
                     results.append(self._to_pkg(entry, installed_map, updateable_ids))
@@ -440,7 +466,7 @@ class AppstreamIndex:
                         "name":                  app_id,
                         "upgrade_symbol":        "↑" if app_id in updateable_ids else "",
                         "version":               "",
-                        "repository":            "Flathub",
+                        "repository":            origin or "Flatpak",
                         "is_actually_installed": True,
                         "installed_version":     "",
                         "available_version":     "",
@@ -509,10 +535,11 @@ class AppstreamIndex:
         """Convert an index entry to the standard package dict shape."""
         app_id    = entry["app_id"]
         installed = app_id in installed_map
-        scope     = installed_map.get(app_id)
+        scope     = installed_map[app_id][0] if installed else None
 
         # Pull the raw string, defaulting to "Flatpak"
         raw_category = entry.get("category", "Flatpak")
+        remote       = entry.get("remote", "Flatpak")
 
         return {
             # ---- fields the GUI reads from the liststore ----
@@ -520,7 +547,7 @@ class AppstreamIndex:
             "name":                  app_id,
             "upgrade_symbol":        "↑" if app_id in updateable_ids else "",
             "version":               entry.get("version", ""),
-            "repository":            "Flathub",
+            "repository":            remote,
             # ---- enrichment fields (mirrors SearchProcessor output) ----
             "is_actually_installed": installed,
             "installed_version":     entry.get("version", "") if installed else "",
