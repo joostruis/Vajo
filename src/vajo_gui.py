@@ -831,6 +831,7 @@ class SearchApp(Gtk.Window):
         menu_bar.append(help_menu_item)
 
     def show_system_info(self, widget):
+        self.output_expander.set_expanded(False)
         self.content_stack.set_visible_child_name("sysinfo")
         self.sysinfo_grid_sw.hide()
         self.sysinfo_spinner_box.show()
