@@ -42,17 +42,6 @@ def setup_signal_handlers(app):
     signal.signal(signal.SIGTERM, signal_handler)
 
 # -------------------------
-# Set up locale and translation
-# -------------------------
-
-locale.setlocale(locale.LC_ALL, '')
-localedir = '/usr/share/locale'
-gettext.bindtextdomain('vajo_ui', localedir)
-gettext.textdomain('vajo_ui')
-_ = gettext.gettext
-ngettext = gettext.ngettext
-
-# -------------------------
 # Core Logic Dependencies
 # -------------------------
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -66,6 +55,8 @@ if os.path.exists(LOCAL_CORE):
     sys.path.insert(0, SCRIPT_DIR)
 elif os.path.exists(SHARED_LIB_PATH):
     sys.path.insert(0, SHARED_LIB_PATH)
+
+from modules.i18n import _, ngettext
 
 try:
     from vajo_core import (
@@ -267,19 +258,19 @@ class PackageDetailsPopup(Gtk.Window):
             next_right_row = 0
 
             homepage_url = package_info.get("homepage", "") or "https://flathub.org/apps/{}".format(name)
-            add_left(3, "Homepage:", self._make_uri_label(homepage_url), top_align=True)
+            add_left(3, _("Homepage:"), self._make_uri_label(homepage_url), top_align=True)
 
-            add_right(next_right_row, "Repository:", self._make_detail_label(repository))
+            add_right(next_right_row, _("Repository:"), self._make_detail_label(repository))
             next_right_row += 1
 
             description = package_info.get("description", "")
             if description:
-                add_right(next_right_row, "Description:", self._make_detail_label(description))
+                add_right(next_right_row, _("Description:"), self._make_detail_label(description))
                 next_right_row += 1
 
             license_ = package_info.get("license", "")
             if license_:
-                add_right(next_right_row, "License:", self._make_detail_label(license_))
+                add_right(next_right_row, _("License:"), self._make_detail_label(license_))
                 next_right_row += 1
 
             # Screenshots for Flatpaks
@@ -314,17 +305,17 @@ class PackageDetailsPopup(Gtk.Window):
                     uri = uri[0] if uri else ""
 
                 if uri:
-                    add_left(3, "Homepage:", self._make_uri_label(uri), top_align=True)
+                    add_left(3, _("Homepage:"), self._make_uri_label(uri), top_align=True)
 
                 next_right_row = 0
                 if repository:
-                    add_right(next_right_row, "Repository:", self._make_detail_label(repository))
+                    add_right(next_right_row, _("Repository:"), self._make_detail_label(repository))
                     next_right_row += 1
                 if description:
-                    add_right(next_right_row, "Description:", self._make_detail_label(description))
+                    add_right(next_right_row, _("Description:"), self._make_detail_label(description))
                     next_right_row += 1
                 if license_:
-                    add_right(next_right_row, "License:", self._make_detail_label(license_))
+                    add_right(next_right_row, _("License:"), self._make_detail_label(license_))
                     next_right_row += 1
 
         hbox.pack_start(left_grid, True, True, 0)
