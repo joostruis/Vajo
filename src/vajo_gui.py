@@ -831,7 +831,6 @@ class SearchApp(Gtk.Window):
         menu_bar.append(help_menu_item)
 
     def show_system_info(self, widget):
-        self.search_box.hide()
         self.content_stack.set_visible_child_name("sysinfo")
         self.sysinfo_grid_sw.hide()
         self.sysinfo_spinner_box.show()
@@ -879,7 +878,6 @@ class SearchApp(Gtk.Window):
         return False
 
     def on_sysinfo_back_clicked(self, widget):
-        self.search_box.show()
         self.content_stack.set_visible_child_name("results")
 
     def show_documentation(self, widget):
@@ -1053,11 +1051,16 @@ class SearchApp(Gtk.Window):
         self.sysinfo_footer.pack_end(self.sysinfo_back_btn, False, False, 0)
         self.sysinfo_pane.pack_start(self.sysinfo_footer, False, False, 0)
 
-        # Stack switches between results treeview and system info pane
+        # Results page: search box + results table
+        results_page = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        results_page.pack_start(self.search_box, False, False, 0)
+        results_page.pack_start(scrolled, True, True, 0)
+
+        # Stack switches between results page and system info pane
         self.content_stack = Gtk.Stack()
-        self.content_stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.content_stack.set_transition_duration(150)
-        self.content_stack.add_named(scrolled, "results")
+        self.content_stack.set_transition_type(Gtk.StackTransitionType.NONE)
+        self.content_stack.set_transition_duration(0)
+        self.content_stack.add_named(results_page, "results")
         self.content_stack.add_named(self.sysinfo_pane, "sysinfo")
 
         # --- Output Log (Expander) ---
@@ -1104,7 +1107,6 @@ class SearchApp(Gtk.Window):
         spacer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, vexpand=False)
         spacer.set_size_request(-1, 10)
         main_vbox.pack_start(spacer, False, False, 0)
-        main_vbox.pack_start(self.search_box, False, False, 0)
         main_vbox.pack_start(self.content_stack, True, True, 0)
         main_vbox.pack_start(self.output_expander, False, False, 0)
 
