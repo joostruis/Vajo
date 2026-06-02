@@ -1137,7 +1137,24 @@ class SearchApp(Gtk.Window):
         self.sysinfo_pane.set_sensitive(sensitive)
         for item in self.menu_bar.get_children():
             if isinstance(item, Gtk.MenuItem): item.set_sensitive(sensitive)
+        self._update_action_colors(sensitive)
 
+    def _action_color_for_id(self, action_id):
+        if action_id == self.ACTION_INSTALL:
+            return "#27ae60"
+        elif action_id == self.ACTION_REMOVE:
+            return "#c0392b"
+        else:
+            return "#888888"
+
+    def _update_action_colors(self, sensitive):
+        if not hasattr(self, "liststore"):
+            return
+        for row in self.liststore:
+            if sensitive:
+                row[10] = self._action_color_for_id(row[5])
+            else:
+                row[10] = "#888888"
     def disable_gui(self):
         self._set_gui_sensitive(False)
 
