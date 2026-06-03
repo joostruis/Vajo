@@ -378,12 +378,23 @@ class RepositoryUpdater:
             inhibit_cookie = inhibit_setter(True, _("Updating repositories"))
 
             def on_done(returncode):
-                # Handle result on main thread via the scheduler
+                # After a successful repo update, merge any pending protected
+                # config files (e.g. ._cfg* from repo-updater packages) so
+                # luet doesn't see duplicate repositories on the next search.
                 if returncode == 0:
+                    try:
+                        import subprocess as _sp
+                        _sp.run(
+                            ["mos", "config-update", "update",
+                             "--interactive=false", "-p", "/etc/luet/repos.conf.d"],
+                            check=False
+                        )
+                    except Exception as _e:
+                        print("config-update failed (non-fatal):", _e, file=sys.stderr)
                     schedule_callback(on_success_callback)
                 else:
                     schedule_callback(on_error_callback)
-                
+
                 # Cleanup (Stop spinner, release inhibition)
                 schedule_callback(on_finish_callback, inhibit_cookie)
 
