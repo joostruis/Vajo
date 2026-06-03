@@ -773,6 +773,13 @@ class SearchApp(Gtk.Window):
     # GUI Initialization
     # ---------------------------------
 
+    def _is_rollback_enabled(self):
+        """Return True if rollback is enabled in config and the system supports it."""
+        return (
+            bool(self.config.get("enable_rollback", False) if self.config else False)
+            and RollbackManager.is_stable_system()
+        )
+
     def create_menu(self, menu_bar):
         file_menu = Gtk.Menu()
         self.update_repositories_item = Gtk.MenuItem(label=_("Update repositories"))
@@ -790,10 +797,7 @@ class SearchApp(Gtk.Window):
         file_menu.append(check_system_item)
         self.rollback_item = Gtk.MenuItem(label=_("Roll back"))
         self.rollback_item.connect("activate", self.on_rollback_clicked)
-        rollback_on = (
-            self.config.get("enable_rollback", False) if self.config else False
-        ) and RollbackManager.is_stable_system()
-        self.rollback_item.set_sensitive(rollback_on)
+        self.rollback_item.set_sensitive(self._is_rollback_enabled())
         file_menu.append(self.rollback_item)
         self.clear_cache_item = Gtk.MenuItem(label=_("Clear Luet cache"))
         self.clear_cache_item.connect("activate", self.on_clear_cache_clicked)
@@ -889,10 +893,7 @@ class SearchApp(Gtk.Window):
         dlg = PreferencesDialog(self, self.config)
         dlg.run()
         dlg.destroy()
-        rollback_on = (
-            self.config.get("enable_rollback", False)
-        ) and RollbackManager.is_stable_system()
-        self.rollback_item.set_sensitive(rollback_on)
+        self.rollback_item.set_sensitive(self._is_rollback_enabled())
 
     def show_about_dialog(self, widget=None):
         dlg = AboutDialog(self)
@@ -1721,8 +1722,6 @@ class SearchApp(Gtk.Window):
             run_op     = lambda cb: FlatpakOperations.run_installation(
                 self.command_runner.run_realtime, self.append_to_log, cb, app_id)
         elif operation == "remove":
-            # Find scope for the app_id
-            scope = self._get_flatpak_scope(app_id)
             question   = _("Do you want to remove {}?").format(display_label)
             secondary  = _("This will remove the Flatpak application.")
             action_msg = _("Removing {}...").format(display_label)
@@ -1731,7 +1730,6 @@ class SearchApp(Gtk.Window):
             run_op     = lambda cb: FlatpakOperations.run_removal(
                 self.command_runner.run_realtime, self.append_to_log, cb, app_id, scope)
         elif operation == "update":
-            scope = self._get_flatpak_scope(app_id)
             question   = _("Do you want to update {}?").format(display_label)
             secondary  = _("This will update the Flatpak application to the latest version.")
             action_msg = _("Updating {}...").format(display_label)
@@ -2085,8 +2083,7 @@ class SearchApp(Gtk.Window):
             self.full_upgrade_item.set_sensitive(False)
         else:
             self.rollback_item.set_label(_("Roll back"))
-            rollback_on = is_stable and (self.config.get("enable_rollback", False) if self.config else False)
-            self.rollback_item.set_sensitive(rollback_on)
+            self.rollback_item.set_sensitive(self._is_rollback_enabled())
             self.update_repositories_item.set_sensitive(True)
             self.full_upgrade_item.set_sensitive(True)
 
