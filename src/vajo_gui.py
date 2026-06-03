@@ -793,8 +793,7 @@ class SearchApp(Gtk.Window):
         rollback_on = (
             self.config.get("enable_rollback", False) if self.config else False
         ) and RollbackManager.is_stable_system()
-        if rollback_on:
-            self.rollback_item.show()
+        self.rollback_item.set_sensitive(rollback_on)
         file_menu.append(self.rollback_item)
         self.clear_cache_item = Gtk.MenuItem(label=_("Clear Luet cache"))
         self.clear_cache_item.connect("activate", self.on_clear_cache_clicked)
@@ -890,6 +889,10 @@ class SearchApp(Gtk.Window):
         dlg = PreferencesDialog(self, self.config)
         dlg.run()
         dlg.destroy()
+        rollback_on = (
+            self.config.get("enable_rollback", False)
+        ) and RollbackManager.is_stable_system()
+        self.rollback_item.set_sensitive(rollback_on)
 
     def show_about_dialog(self, widget=None):
         dlg = AboutDialog(self)
@@ -2082,7 +2085,8 @@ class SearchApp(Gtk.Window):
             self.full_upgrade_item.set_sensitive(False)
         else:
             self.rollback_item.set_label(_("Roll back"))
-            self.rollback_item.set_sensitive(is_stable)
+            rollback_on = is_stable and (self.config.get("enable_rollback", False) if self.config else False)
+            self.rollback_item.set_sensitive(rollback_on)
             self.update_repositories_item.set_sensitive(True)
             self.full_upgrade_item.set_sensitive(True)
 
