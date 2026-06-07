@@ -64,7 +64,7 @@ try:
         CacheCleaner, PackageOperations, PackageSearcher, SyncInfo, 
         PackageFilter, AboutInfo, Spinner, PackageDetails, PackageState, 
         SearchProcessor, RollbackManager, DescriptionIndex, Debug,
-        SystemInfoProvider
+        SystemInfoProvider, SystemAppstreamLookup
     )
 except ImportError as e:
     print("FATAL: vajo_core.py not found in local directory or /usr/share/vajo.")
@@ -215,7 +215,7 @@ class PackageDetailsPopup(Gtk.Window):
         # For flatpak: human-readable name for display, app-id kept in name for commands
         display_name = package_info.get("_flatpak_display", name) if is_flatpak else name
 
-        main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        self.main_box = main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         main_box.set_margin_start(10)
         main_box.set_margin_end(10)
         main_box.set_margin_top(10)
@@ -317,6 +317,20 @@ class PackageDetailsPopup(Gtk.Window):
                 if license_:
                     add_right(next_right_row, _("License:"), self._make_detail_label(license_))
                     next_right_row += 1
+
+                # Extract appstream.id from labels and load system screenshots
+                labels = definition_data.get("labels") or {}
+                appstream_id = labels.get("appstream.id", "")
+                if appstream_id:
+                    def _load_and_show_screenshots(aid):
+                        urls = SystemAppstreamLookup.get_screenshots(aid)
+                        if urls:
+                            GLib.idle_add(self._show_screenshots, urls)
+                    threading.Thread(
+                        target=_load_and_show_screenshots,
+                        args=(appstream_id,),
+                        daemon=True
+                    ).start()
 
         hbox.pack_start(left_grid, True, True, 0)
         hbox.pack_start(right_grid, True, True, 0)
@@ -468,6 +482,30 @@ class PackageDetailsPopup(Gtk.Window):
         self.screenshots_hbox.pack_start(image, False, False, 0)
         image.show()
         return False # GLib.idle_add callback should return False to not repeat
+
+    def _show_screenshots(self, urls):
+        """
+        Build the screenshots UI for native Luet packages (called on main thread
+        via GLib.idle_add once SystemAppstreamLookup has returned URLs).
+        """
+        if not urls:
+            return False
+        self.screenshots_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        self.screenshots_box.set_margin_top(10)
+
+        self.screenshots_sw = Gtk.ScrolledWindow()
+        self.screenshots_sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
+        self.screenshots_sw.set_min_content_height(220)
+
+        self.screenshots_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        self.screenshots_sw.add(self.screenshots_hbox)
+        self.screenshots_box.pack_start(self.screenshots_sw, True, True, 0)
+
+        self.main_box.pack_start(self.screenshots_box, True, True, 0)
+        self.screenshots_box.show_all()
+
+        threading.Thread(target=self.load_screenshots, args=(urls,), daemon=True).start()
+        return False
 
     def on_action_clicked(self, button):
         """Close the window and trigger the install/remove action."""

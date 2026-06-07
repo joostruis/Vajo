@@ -1295,3 +1295,62 @@ class PackageDetails:
         
         # NOTE: Removed 'Required by:' and 'Files:' sections here.
         return "\n".join(out)
+
+
+# -------------------------
+# SystemAppstreamLookup
+# -------------------------
+class SystemAppstreamLookup:
+    """
+    Look up AppStream metadata (screenshots, etc.) for a native package
+    using its appstream.id label (e.g. 'org.mozilla.Thunderbird').
+
+    Delegates to `appstreamcli dump <id>` and parses the XML output,
+    letting appstreamcli handle cache lookups transparently.
+    """
+
+    @staticmethod
+    def get_screenshots(appstream_id):
+        """
+        Return a list of screenshot URLs for the given AppStream component ID.
+        Returns an empty list if nothing is found or appstreamcli is unavailable.
+        """
+        import xml.etree.ElementTree as ET
+
+        if not appstream_id:
+            return []
+
+        try:
+            res = subprocess.run(
+                ["appstreamcli", "dump", appstream_id],
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+            )
+            if res.returncode != 0 or not res.stdout.strip():
+                return []
+
+            root = ET.fromstring(res.stdout.strip())
+
+            screenshots = []
+            ss_container = root.find("screenshots")
+            if ss_container is not None:
+                for ss in ss_container:
+                    ss_local = ss.tag.split("}")[-1] if "}" in ss.tag else ss.tag
+                    if ss_local != "screenshot":
+                        continue
+                    best = None
+                    for img in ss:
+                        img_local = img.tag.split("}")[-1] if "}" in img.tag else img.tag
+                        if img_local == "image" and img.text:
+                            url = img.text.strip()
+                            if img.get("type") == "source":
+                                best = url
+                                break
+                            if best is None:
+                                best = url
+                    if best:
+                        screenshots.append(best)
+            return screenshots
+
+        except Exception as e:
+            Debug.log(f"SystemAppstreamLookup: error for {appstream_id}: {e}")
+            return []
