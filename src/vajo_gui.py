@@ -1446,7 +1446,6 @@ class SearchApp(Gtk.Window):
         if not package_name: 
             return
         
-        # FIX: Add validation
         # Remove null bytes and control characters
         sanitized_name = package_name.replace('\0', '').replace('\n', '').replace('\r', '')
         
@@ -1627,8 +1626,6 @@ class SearchApp(Gtk.Window):
                 else _("No results")
             )
             self.stop_spinner()
-            
-
 
         except Exception as e:
             print(_("Error processing search results:"), e)
@@ -1860,7 +1857,6 @@ class SearchApp(Gtk.Window):
             return
         dlg.destroy()
         
-        # Refactor 1: Use Core to build install command
         pkg_fullname = "{}/{}".format(category, name)
         install_cmd = PackageOperations.build_install_command(pkg_fullname)
 
@@ -1873,7 +1869,6 @@ class SearchApp(Gtk.Window):
 
         def on_install_done(returncode):
             if returncode == 0:
-                # Refactor 2: Use Core to run post-transaction refresh without freezing UI
                 self.set_status_message(_("Finalizing: Updating package cache..."))
                 PackageOperations.run_post_transaction_refresh(
                     self.command_runner.run_sync,
@@ -1911,7 +1906,6 @@ class SearchApp(Gtk.Window):
         
         def on_uninstall_done(returncode):
             if returncode == 0:
-                # Refactor 2: Use Core to run post-transaction refresh without freezing UI
                 self.set_status_message(_("Finalizing: Updating package cache..."))
                 PackageOperations.run_post_transaction_refresh(
                     self.command_runner.run_sync,
