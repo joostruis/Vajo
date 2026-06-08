@@ -12,7 +12,6 @@ import gettext
 import locale
 import signal
 import subprocess
-import socket
 
 try:
     from packaging import version as pkg_version
