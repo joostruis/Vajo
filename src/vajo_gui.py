@@ -1407,7 +1407,7 @@ class SearchApp(Gtk.Window):
                 "description": "",
             }
             if self.desc_index.is_ready:
-                indexed = self.desc_index._index.get(key)
+                indexed = self.desc_index.get(key)
                 if indexed:
                     pkg["description"] = indexed.get("description", "")
                     pkg["repository"] = indexed.get("repository", "")
@@ -1512,7 +1512,7 @@ class SearchApp(Gtk.Window):
                 flatpak_packages = self.appstream_index.search(query)
             else:
                 # Index still building — wait briefly (it's just XML parsing, usually <1s)
-                self.appstream_index._ready_event.wait(timeout=3.0)
+                self.appstream_index.wait_until_ready(timeout=3.0)
                 flatpak_packages = self.appstream_index.search(query)
             result_data = FlatpakBackend.merge(result_data, {"packages": flatpak_packages})
 
@@ -1543,12 +1543,12 @@ class SearchApp(Gtk.Window):
         desc = pkg.get("description", "")
         appstream_id = ""
         if not desc and self.desc_index.is_ready:
-            indexed = self.desc_index._index.get("{}/{}".format(category, name))
+            indexed = self.desc_index.get("{}/{}".format(category, name))
             if indexed:
                 desc = indexed.get("description", "")
                 appstream_id = indexed.get("appstream_id", "")
         elif self.desc_index.is_ready:
-            indexed = self.desc_index._index.get("{}/{}".format(category, name))
+            indexed = self.desc_index.get("{}/{}".format(category, name))
             if indexed:
                 appstream_id = indexed.get("appstream_id", "")
 
@@ -1674,7 +1674,7 @@ class SearchApp(Gtk.Window):
             elif action_id == self.ACTION_FLATPAK_READONLY:
                 display_label = self.liststore.get_value(child_iter, 1)
                 app_id = self._flatpak_appids.get(("flatpak", display_label), display_label)
-                installed = app_id in (self.appstream_index._installed_map if self.appstream_index else {})
+                installed = self.appstream_index.is_installed(app_id) if self.appstream_index else False
                 if installed:
                     self.confirm_flatpak_remove(child_iter)
                 else:
@@ -1707,14 +1707,11 @@ class SearchApp(Gtk.Window):
                 package_info["name"] = app_id
                 package_info["_flatpak_display"] = display_label
                 if self.appstream_index is not None:
-                    with self.appstream_index._lock:
-                        package_info["installed"] = app_id in self.appstream_index._installed_map
-                        package_info["_flatpak_scope"] = self.appstream_index._installed_map.get(app_id, "system")
-                        entry = self.appstream_index._index.get(app_id, {})
-                        package_info["description"] = entry.get("summary", "")
-                        package_info["license"] = entry.get("license", "")
-                        package_info["homepage"] = entry.get("homepage", "")
-                        package_info["screenshots"] = entry.get("screenshots", [])
+                    info = self.appstream_index.get_app_info(app_id)
+                    if info:
+                        package_info.update(info)
+                    else:
+                        package_info["description"] = ""
                 else:
                     package_info["description"] = ""
             else:

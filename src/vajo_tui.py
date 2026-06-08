@@ -1353,7 +1353,7 @@ class LuetTUI:
                 continue
             repo = ""
             if self.desc_index.is_ready:
-                indexed = self.desc_index._index.get(key)
+                indexed = self.desc_index.get(key)
                 if indexed:
                     repo = indexed.get("repository", "")
             packages.append({
@@ -1420,7 +1420,7 @@ class LuetTUI:
                 # Merge description matches from local treefs index.
                 # Block until the index is ready, or at most 2 seconds.
                 if not self.desc_index.is_ready:
-                    self.desc_index._ready_event.wait(timeout=2.0)
+                    self.desc_index.wait_until_ready(timeout=2.0)
 
                 if self.desc_index.is_ready and "error" not in result:
                     existing_keys = {
@@ -1439,7 +1439,7 @@ class LuetTUI:
                 # Merge Flatpak results when --flatpak flag is active
                 if self.appstream_index is not None:
                     if not self.appstream_index.is_ready:
-                        self.appstream_index._ready_event.wait(timeout=3.0)
+                        self.appstream_index.wait_until_ready(timeout=3.0)
                     flatpak_packages = self.appstream_index.search(sanitized_query)
                     result = FlatpakBackend.merge(result, {"packages": flatpak_packages})
 

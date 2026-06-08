@@ -478,6 +478,39 @@ class AppstreamIndex:
                     })
             return results
 
+    def get_app_info(self, app_id: str) -> dict:
+        """
+        Return a dict with installed/scope/entry details for app_id.
+        Always returns a dict (never None) — installed will be False for
+        apps not currently installed but present in the appstream index.
+        Returns None only if app_id is completely unknown.
+        """
+        with self._lock:
+            entry = self._index.get(app_id)
+            if entry is None and app_id not in self._installed_map:
+                return None
+            installed = app_id in self._installed_map
+            scope = self._installed_map[app_id][0] if installed else None
+            if entry is None:
+                entry = {}
+            return {
+                "installed":        installed,
+                "_flatpak_scope":   scope,
+                "description":      entry.get("summary", ""),
+                "license":          entry.get("license", ""),
+                "homepage":         entry.get("homepage", ""),
+                "screenshots":      entry.get("screenshots", []),
+            }
+
+    def is_installed(self, app_id: str) -> bool:
+        """Return True if app_id is currently installed."""
+        with self._lock:
+            return app_id in self._installed_map
+
+    def wait_until_ready(self, timeout=3.0):
+        """Block until the index is built or timeout expires."""
+        self._ready_event.wait(timeout=timeout)
+
     def search(self, query: str) -> list:
         """
         Case-insensitive search over app-id and display name only.

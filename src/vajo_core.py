@@ -148,7 +148,7 @@ class AboutInfo:
         
     @staticmethod
     def get_version():
-        return "0.9.7.0"
+        return "0.9.6.9"
 
     @staticmethod
     def get_copyright():
@@ -1093,6 +1093,15 @@ class DescriptionIndex:
                 if all(w in haystack for w in words):
                     results.append(dict(pkg))
             return results
+
+    def get(self, key):
+        """Return the index entry for 'category/name', or None if not found."""
+        with self._lock:
+            return dict(self._index[key]) if key in self._index else None
+
+    def wait_until_ready(self, timeout=3.0):
+        """Block until the index is built or timeout expires."""
+        self._ready_event.wait(timeout=timeout)
 
 
 class SyncInfo:
