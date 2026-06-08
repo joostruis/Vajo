@@ -1130,7 +1130,6 @@ class SearchApp(Gtk.Window):
 
     def show_about_dialog(self, widget=None):
         dlg = AboutDialog(self)
-        dlg.show_all()
         dlg.run()
 
     def init_search_ui(self):
