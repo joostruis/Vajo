@@ -216,6 +216,7 @@ class PackageDetailsPopup(Gtk.Window):
         display_name = package_info.get("_flatpak_display", name) if is_flatpak else name
 
         self.main_box = main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        main_box.set_valign(Gtk.Align.START)
         main_box.set_margin_start(10)
         main_box.set_margin_end(10)
         main_box.set_margin_top(10)
@@ -253,6 +254,14 @@ class PackageDetailsPopup(Gtk.Window):
             right_grid.attach(label, 0, row, 1, 1)
             right_grid.attach(widget, 1, row, 1, 1)
 
+        hbox.pack_start(left_grid, True, True, 0)
+        hbox.pack_start(right_grid, True, True, 0)
+        main_box.pack_start(hbox, False, False, 0)
+
+        # Add a horizontal separator below the metadata
+        metadata_sep = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        main_box.pack_start(metadata_sep, False, False, 0)
+
         if is_flatpak:
             # --- Flatpak details: use appstream data, no luet API calls ---
             next_right_row = 0
@@ -282,12 +291,17 @@ class PackageDetailsPopup(Gtk.Window):
                 self.screenshots_sw = Gtk.ScrolledWindow()
                 self.screenshots_sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
                 self.screenshots_sw.set_min_content_height(220)
+                self.screenshots_sw.set_propagate_natural_height(True)
 
                 self.screenshots_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
                 self.screenshots_sw.add(self.screenshots_hbox)
                 self.screenshots_box.pack_start(self.screenshots_sw, True, True, 0)
 
-                main_box.pack_start(self.screenshots_box, True, True, 0)
+                # Add a horizontal separator below the screenshots
+                separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+                self.screenshots_box.pack_start(separator, False, False, 0)
+
+                main_box.pack_start(self.screenshots_box, False, False, 0)
 
                 # Load screenshots in background
                 threading.Thread(target=self.load_screenshots, args=(screenshots,), daemon=True).start()
@@ -296,7 +310,7 @@ class PackageDetailsPopup(Gtk.Window):
             # --- Luet details: load definition.yaml ---
             definition_data = self.load_definition_yaml(repository, category, name, version)
             if definition_data:
-                description = definition_data.get("description", "")
+                description = definition_data.get("description") or definition_data.get("long_description") or ""
                 license_ = (definition_data.get("license") or definition_data.get("licenses") or "")
                 if isinstance(license_, list):
                     license_ = ", ".join(license_)
@@ -307,34 +321,46 @@ class PackageDetailsPopup(Gtk.Window):
                 if uri:
                     add_left(3, _("Homepage:"), self._make_uri_label(uri), top_align=True)
 
+                if not repository:
+                    repository = definition_data.get("repository", "")
+
                 next_right_row = 0
                 if repository:
                     add_right(next_right_row, _("Repository:"), self._make_detail_label(repository))
                     next_right_row += 1
                 if description:
-                    add_right(next_right_row, _("Description:"), self._make_detail_label(description))
+                    self._description_label = self._make_detail_label(description)
+                    add_right(next_right_row, _("Description:"), self._description_label)
                     next_right_row += 1
+                else:
+                    self._description_label = None
                 if license_:
-                    add_right(next_right_row, _("License:"), self._make_detail_label(license_))
+                    self._license_label = self._make_detail_label(license_)
+                    add_right(next_right_row, _("License:"), self._license_label)
                     next_right_row += 1
+                else:
+                    self._license_label = None
 
-                # Extract appstream.id from labels and load system screenshots
+                # Extract appstream.id from labels and load system screenshots + summary
                 labels = definition_data.get("labels") or {}
                 appstream_id = labels.get("appstream.id", "")
+                self._has_appstream = bool(appstream_id)
                 if appstream_id:
-                    def _load_and_show_screenshots(aid):
-                        urls = SystemAppstreamLookup.get_screenshots(aid)
-                        if urls:
-                            GLib.idle_add(self._show_screenshots, urls)
+                    def _load_and_show_metadata(aid):
+                        Debug.log(f"fetching appstream metadata for {aid!r}")
+                        meta = SystemAppstreamLookup.get_metadata(aid)
+                        Debug.log(f"got {len(meta['screenshots'])} screenshot(s) for {aid!r}")
+                        if meta["summary"]:
+                            GLib.idle_add(self._update_description, meta["summary"], meta.get("license", ""))
+                        if meta["screenshots"]:
+                            GLib.idle_add(self._show_screenshots, meta["screenshots"])
                     threading.Thread(
-                        target=_load_and_show_screenshots,
+                        target=_load_and_show_metadata,
                         args=(appstream_id,),
                         daemon=True
                     ).start()
-
-        hbox.pack_start(left_grid, True, True, 0)
-        hbox.pack_start(right_grid, True, True, 0)
-        main_box.pack_start(hbox, False, False, 0)
+                else:
+                    self._has_appstream = False
 
         self.required_by_expander = Gtk.Expander(label=_("Required by"))
         self.required_by_textview = Gtk.TextView()
@@ -401,7 +427,7 @@ class PackageDetailsPopup(Gtk.Window):
         outer_box.pack_end(button_box, False, False, 0)
 
         self.add(outer_box)
-        self.set_default_size(900, 400)
+        self.set_default_size(900, 520)
         self.set_resizable(True)
         self.show_all()
 
@@ -483,6 +509,14 @@ class PackageDetailsPopup(Gtk.Window):
         image.show()
         return False # GLib.idle_add callback should return False to not repeat
 
+    def _update_description(self, summary, license_=""):
+        """Replace description and license label text with appstream values if available."""
+        if self._description_label and summary:
+            self._description_label.set_text(summary)
+        if self._license_label and license_:
+            self._license_label.set_text(license_)
+        return False
+
     def _show_screenshots(self, urls):
         """
         Build the screenshots UI for native Luet packages (called on main thread
@@ -496,12 +530,18 @@ class PackageDetailsPopup(Gtk.Window):
         self.screenshots_sw = Gtk.ScrolledWindow()
         self.screenshots_sw.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
         self.screenshots_sw.set_min_content_height(220)
+        self.screenshots_sw.set_propagate_natural_height(True)
 
         self.screenshots_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         self.screenshots_sw.add(self.screenshots_hbox)
         self.screenshots_box.pack_start(self.screenshots_sw, True, True, 0)
 
-        self.main_box.pack_start(self.screenshots_box, True, True, 0)
+        # Add a horizontal separator below the screenshots
+        separator = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
+        self.screenshots_box.pack_start(separator, False, False, 0)
+
+        self.main_box.pack_start(self.screenshots_box, False, False, 0)
+        self.main_box.reorder_child(self.screenshots_box, 2)
         self.screenshots_box.show_all()
 
         threading.Thread(target=self.load_screenshots, args=(urls,), daemon=True).start()
@@ -1232,6 +1272,15 @@ class SearchApp(Gtk.Window):
                 if indexed:
                     pkg["description"] = indexed.get("description", "")
                     pkg["repository"] = indexed.get("repository", "")
+                    available_version = indexed.get("version", "")
+                    if available_version and available_version != version:
+                        try:
+                            from packaging import version as _pkg_version
+                            if _pkg_version.parse(available_version) > _pkg_version.parse(version):
+                                pkg["upgrade_symbol"] = "↑"
+                                pkg["upgradeable"] = True
+                        except Exception:
+                            pass
             packages.append(pkg)
 
         packages.sort(key=lambda p: (p["category"], p["name"]))
@@ -1354,20 +1403,36 @@ class SearchApp(Gtk.Window):
             action_id, action_display, action_color = self.ACTION_INSTALL,          _("Install"), "#27ae60"
 
         desc = pkg.get("description", "")
+        appstream_id = ""
         if not desc and self.desc_index.is_ready:
             indexed = self.desc_index._index.get("{}/{}".format(category, name))
             if indexed:
                 desc = indexed.get("description", "")
+                appstream_id = indexed.get("appstream_id", "")
+        elif self.desc_index.is_ready:
+            indexed = self.desc_index._index.get("{}/{}".format(category, name))
+            if indexed:
+                appstream_id = indexed.get("appstream_id", "")
 
         display_name = pkg.get("_flatpak_label", name) if is_flatpak else name
         if is_flatpak:
             self._flatpak_appids[("flatpak", display_name)] = name
 
-        self.liststore.append([
+        iter_ = self.liststore.append([
             _(category), display_name, upgrade_symbol, version,
             pkg.get("repository", ""), action_id, action_display,
             _("Details"), None, desc, action_color,
         ])
+
+        if appstream_id and not is_flatpak:
+            row_ref = Gtk.TreeRowReference.new(self.liststore, self.liststore.get_path(iter_))
+            def _update_tooltip(aid, ref):
+                meta = SystemAppstreamLookup.get_metadata(aid)
+                summary = meta.get("summary", "")
+                if summary and ref.valid():
+                    path = ref.get_path()
+                    GLib.idle_add(self.liststore.set_value, self.liststore.get_iter(path), 9, summary)
+            threading.Thread(target=_update_tooltip, args=(appstream_id, row_ref), daemon=True).start()
         return True
 
     def on_search_entry_changed(self, entry):

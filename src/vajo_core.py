@@ -387,7 +387,9 @@ class RepositoryUpdater:
                         _sp.run(
                             ["mos", "config-update", "update",
                              "--interactive=false", "-p", "/etc/luet/repos.conf.d"],
-                            check=False
+                            check=False,
+                            stdout=_sp.DEVNULL,
+                            stderr=_sp.DEVNULL
                         )
                     except Exception as _e:
                         print("config-update failed (non-fatal):", _e, file=sys.stderr)
@@ -1021,9 +1023,39 @@ class DescriptionIndex:
                                 "version":     ver,
                                 "description": desc,
                                 "repository":  repo,
+                                "appstream_id": "",
                             }
                     except Exception:
                         continue
+
+                # Second pass: pick up appstream.id labels
+                res2 = run_sync(
+                    ["grep", "-rH", "--include=definition.yaml",
+                     "appstream.id", self.REPOS_PATH],
+                    require_root=True
+                )
+                if res2.returncode == 0 and res2.stdout.strip():
+                    for line in res2.stdout.splitlines():
+                        try:
+                            colon_idx = line.index(':')
+                            filepath = line[:colon_idx]
+                            rest = line[colon_idx + 1:].strip()
+                            # rest is e.g. "  appstream.id: org.qbittorrent.qBittorrent"
+                            if 'appstream.id' not in rest:
+                                continue
+                            appstream_id = rest.split('appstream.id')[-1].lstrip(':').strip().strip('"').strip("'")
+                            if not appstream_id:
+                                continue
+
+                            parts = filepath.split('/')
+                            ri = parts.index('repos')
+                            cat  = parts[ri + 3]
+                            name = parts[ri + 4]
+                            key = f"{cat}/{name}"
+                            if key in index:
+                                index[key]["appstream_id"] = appstream_id
+                        except Exception:
+                            continue
 
             except Exception as e:
                 print(f"DescriptionIndex: error building index: {e}", file=sys.stderr)
@@ -1157,14 +1189,35 @@ class PackageDetails:
                     require_root=True
                 )
                 if res.returncode != 0:
-                    return None
-                repos = [os.path.basename(p.strip()) for p in res.stdout.splitlines() if p.strip()]
+                    repos = []
+                else:
+                    repos = [os.path.basename(p.strip()) for p in res.stdout.splitlines() if p.strip()]
 
             for repo in repos:
                 path = f"/var/luet/db/repos/{repo}/treefs/{category}/{name}/{version}/definition.yaml"
                 res = run_command_sync(["cat", path], require_root=True)
                 if res.returncode == 0 and res.stdout:
-                    return yaml.safe_load(res.stdout)
+                    data = yaml.safe_load(res.stdout)
+                    if isinstance(data, dict):
+                        # Ensure repository is in the data
+                        if not data.get("repository"):
+                            data["repository"] = repo
+                    return data
+
+            # FALLBACK: Try luet search for installed packages if not found in repo treefs
+            cmd = ["luet", "search", f"{category}/{name}", "--installed", "-o", "json"]
+            res = run_command_sync(cmd, require_root=True)
+            if res.returncode == 0 and res.stdout:
+                try:
+                    search_data = json.loads(res.stdout)
+                    if isinstance(search_data, dict) and search_data.get("packages"):
+                        for pkg in search_data["packages"]:
+                            # If version is specified, must match. If not, take the first one.
+                            if not version or pkg.get("version") == version:
+                                return pkg
+                except json.JSONDecodeError:
+                    pass
+
             return None
         except Exception:
             return None
@@ -1258,8 +1311,9 @@ class PackageDetails:
             left_column.append(f"{license_indent}{line}")
 
         # RIGHT Column: Labels now use dynamically calculated align_width_right
-        if repository:
-            right_column.append(f"{repo_label:>{align_width_right}}: {repository}")
+        repo_to_show = repository or details.get("repository") or ""
+        if repo_to_show:
+            right_column.append(f"{repo_label:>{align_width_right}}: {repo_to_show}")
 
         # --- Description Wrapping ---
         desc = details.get("description") or details.get("long_description") or ""
@@ -1310,28 +1364,53 @@ class SystemAppstreamLookup:
     """
 
     @staticmethod
-    def get_screenshots(appstream_id):
+    def get_metadata(appstream_id):
         """
-        Return a list of screenshot URLs for the given AppStream component ID.
-        Returns an empty list if nothing is found or appstreamcli is unavailable.
+        Return a dict with AppStream metadata for the given component ID:
+          {
+            "summary":     str or "",
+            "screenshots": [url, ...]
+          }
+        Returns empty values if nothing is found or appstreamcli is unavailable.
         """
         import xml.etree.ElementTree as ET
 
+        empty = {"summary": "", "license": "", "screenshots": []}
+
         if not appstream_id:
-            return []
+            return empty
 
         try:
             res = subprocess.run(
                 ["appstreamcli", "dump", appstream_id],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
+            Debug.log(f"appstreamcli dump {appstream_id}: returncode={res.returncode} stdout_len={len(res.stdout)}")
             if res.returncode != 0 or not res.stdout.strip():
-                return []
+                return empty
 
-            root = ET.fromstring(res.stdout.strip())
+            # appstreamcli dump may return multiple XML documents (one per source)
+            # Split on the XML declaration and take the first complete document
+            raw = res.stdout.strip()
+            parts = raw.split("<?xml")
+            parts = [p for p in parts if p.strip()]
+            first_doc = "<?xml" + parts[0]
 
+            root = ET.fromstring(first_doc)
+            Debug.log(f"appstream XML root tag={root.tag!r}")
+
+            # Summary
+            summary_elem = root.find("summary")
+            summary = summary_elem.text.strip() if summary_elem is not None and summary_elem.text else ""
+
+            # License
+            license_elem = root.find("project_license")
+            license_ = license_elem.text.strip() if license_elem is not None and license_elem.text else ""
+
+            # Screenshots
             screenshots = []
             ss_container = root.find("screenshots")
+            Debug.log(f"appstream ss_container found={ss_container is not None}")
             if ss_container is not None:
                 for ss in ss_container:
                     ss_local = ss.tag.split("}")[-1] if "}" in ss.tag else ss.tag
@@ -1349,8 +1428,9 @@ class SystemAppstreamLookup:
                                 best = url
                     if best:
                         screenshots.append(best)
-            return screenshots
+
+            return {"summary": summary, "license": license_, "screenshots": screenshots}
 
         except Exception as e:
             Debug.log(f"SystemAppstreamLookup: error for {appstream_id}: {e}")
-            return []
+            return empty
