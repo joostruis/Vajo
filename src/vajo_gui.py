@@ -13,12 +13,7 @@ import locale
 import signal
 import subprocess
 
-try:
-    from packaging import version as pkg_version
-except ImportError:
-    print("WARNING: 'packaging' library not found. Upgrade check will not be available.")
-    print("Please run 'pip install packaging'")
-    pkg_version = None # Create a fallback
+from packaging import version as pkg_version
 
 gi.require_version('Gtk', '3.0')
 from gi.repository import Gtk, GLib, Gdk, Pango, Gio, GdkPixbuf
