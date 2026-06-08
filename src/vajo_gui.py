@@ -139,7 +139,24 @@ class PreferencesDialog(Gtk.Dialog):
         self.rollback_check.connect("toggled", self._on_rollback_toggled)
         box.pack_start(self.rollback_check, False, False, 0)
 
-        restart_note = Gtk.Label(label=_("Changes take effect after restarting Vajo."))
+        # Section: Appearance
+        appearance_label = Gtk.Label()
+        appearance_label.set_markup("<b>{}</b>".format(_("Appearance")))
+        appearance_label.set_xalign(0)
+        appearance_label.set_margin_top(10)
+        box.pack_start(appearance_label, False, False, 4)
+
+        self.dark_check = Gtk.CheckButton(label=_("Prefer dark theme"))
+        self.dark_check.set_active(config.get("prefer_dark_theme", False))
+        self.dark_check.set_tooltip_text(
+            _("Force Vajo to use the dark GTK theme variant.\n"
+              "Overrides the system theme preference.\n"
+              "Takes effect immediately.")
+        )
+        self.dark_check.connect("toggled", self._on_dark_toggled)
+        box.pack_start(self.dark_check, False, False, 0)
+
+        restart_note = Gtk.Label(label=_("Module changes take effect after restarting Vajo."))
         restart_note.set_xalign(0)
         restart_note.set_margin_top(10)
         box.pack_start(restart_note, False, False, 0)
@@ -151,6 +168,16 @@ class PreferencesDialog(Gtk.Dialog):
 
     def _on_rollback_toggled(self, widget):
         self.config.set("enable_rollback", widget.get_active())
+
+    def _on_dark_toggled(self, widget):
+        active = widget.get_active()
+        self.config.set("prefer_dark_theme", active)
+        Gtk.Settings.get_default().set_property("gtk-application-prefer-dark-theme", active)
+        # Live-update the treeview CSS and hover highlight color in the main window
+        parent = self.get_transient_for()
+        if parent is not None:
+            parent._apply_theme_css()
+            parent.HIGHLIGHT_COLOR = parent.get_theme_highlight_color()
 
 
 # -------------------------
@@ -810,7 +837,7 @@ class SearchApp(Gtk.Window):
         self.status_message_lock = threading.Lock()
         self.cache_lock = threading.Lock()
         self.highlighted_row_path = None
-        self.HIGHLIGHT_COLOR = self.get_theme_highlight_color()
+        self.HIGHLIGHT_COLOR = None  # set after config is loaded
 
         self.ACTION_INSTALL = 0
         self.ACTION_REMOVE = 1
@@ -844,6 +871,15 @@ class SearchApp(Gtk.Window):
 
         # Load user config first — it gates flatpak and rollback
         self.config = VajoConfig() if VajoConfig else None
+
+        # Apply theme preference before any widgets are realized
+        if self.config:
+            Gtk.Settings.get_default().set_property(
+                "gtk-application-prefer-dark-theme",
+                self.config.get("prefer_dark_theme", False)
+            )
+
+        self.HIGHLIGHT_COLOR = self.get_theme_highlight_color()
 
         # Flatpak enabled if --flatpak flag OR config says so
         flatpak_on = FLATPAK_ENABLED or (self.config.get("enable_flatpak", False) if self.config else False)
@@ -936,8 +972,36 @@ class SearchApp(Gtk.Window):
          return SyncInfo.get_last_sync_time()
 
     def get_theme_highlight_color(self):
-        # Warm amber-brown that fits the MocaccinoOS palette
-        return "#e8e8e8"
+        dark = self.config.get("prefer_dark_theme", False) if self.config else False
+        return "#3a3a3a" if dark else "#e8e8e8"
+
+    def _apply_theme_css(self):
+        """Build and install the CSS provider for the current theme setting.
+        Safe to call multiple times — removes the previous provider first."""
+        screen = Gdk.Screen.get_default()
+        if self.css_provider is not None:
+            Gtk.StyleContext.remove_provider_for_screen(screen, self.css_provider)
+
+        dark = self.config.get("prefer_dark_theme", False) if self.config else False
+        if dark:
+            treeview_css = b"""
+                treeview:selected { background-color: #4a4a4a; color: #f0f0f0; }
+                treeview:selected:focus { background-color: #4a4a4a; color: #f0f0f0; }
+            """
+        else:
+            treeview_css = b"""
+                treeview:selected { background-color: #e8e8e8; color: #1a1a1a; }
+                treeview:selected:focus { background-color: #e8e8e8; color: #1a1a1a; }
+            """
+        self.css_provider = Gtk.CssProvider()
+        self.css_provider.load_from_data(b"""
+            #output_log text { font-family: monospace; }
+            .dimmed { color: rgba(128, 128, 128, 0.8); }
+            .error { color: darkorange; }
+        """ + treeview_css)
+        Gtk.StyleContext.add_provider_for_screen(
+            screen, self.css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER
+        )
 
     # ---------------------------------
     # GUI Initialization
@@ -1258,18 +1322,8 @@ class SearchApp(Gtk.Window):
         self.output_expander.add(output_sw)
 
         # --- CSS Styling ---
-        css_provider = Gtk.CssProvider()
-        css_provider.load_from_data(b"""
-            #output_log text { font-family: monospace; }
-            .dimmed { color: rgba(128, 128, 128, 0.8); }
-            .error { color: darkorange; }
-            treeview:selected { background-color: #e8e8e8; color: #1a1a1a; }
-            treeview:selected:focus { background-color: #e8e8e8; color: #1a1a1a; }
-
-        """)
-        Gtk.StyleContext.add_provider_for_screen(
-            Gdk.Screen.get_default(), css_provider, Gtk.STYLE_PROVIDER_PRIORITY_USER
-        )
+        self.css_provider = None
+        self._apply_theme_css()
 
         # --- Layout Assembly ---
         main_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)

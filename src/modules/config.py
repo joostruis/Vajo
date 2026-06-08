@@ -16,8 +16,9 @@ VajoConfig()
 
 Default config keys
 -------------------
-  "enable_flatpak"  : bool  — show Flathub results (equiv. to --flatpak flag)
-  "enable_rollback" : bool  — show the Roll back item in File menu
+  "enable_flatpak"    : bool  — show Flathub results (equiv. to --flatpak flag)
+  "enable_rollback"   : bool  — show the Roll back item in File menu
+  "prefer_dark_theme" : bool  — force GTK dark theme regardless of system setting
 """
 
 import json
@@ -27,8 +28,9 @@ _CONFIG_DIR  = os.path.expanduser("~/.config/vajo")
 _CONFIG_PATH = os.path.join(_CONFIG_DIR, "vajo.conf")
 
 _DEFAULTS = {
-    "enable_flatpak":  False,
-    "enable_rollback": False,
+    "enable_flatpak":     False,
+    "enable_rollback":    False,
+    "prefer_dark_theme":  False,
 }
 
 
