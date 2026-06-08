@@ -188,6 +188,70 @@ class AboutDialog(Gtk.AboutDialog):
         self.connect("response", lambda d, r: d.destroy())
 
 # -------------------------
+# Screenshot Preview window
+# -------------------------
+class ScreenshotPreview(Gtk.Window):
+    def __init__(self, parent, pixbuf):
+        super().__init__(title=_("Screenshot Preview"))
+        self.set_transient_for(parent)
+        self.set_modal(True)
+        self.set_decorated(False)
+        self.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
+        self.set_skip_taskbar_hint(True)
+        
+        # Track creation time to avoid instant closure from the click that opened us
+        self._shown_at = time.time()
+        
+        # Calculate size based on pixbuf but cap it to screen size (modern Gdk.Monitor API)
+        display = self.get_display()
+        monitor = display.get_monitor_at_window(parent.get_window())
+        if not monitor:
+            monitor = display.get_primary_monitor() or display.get_monitor(0)
+        
+        geometry = monitor.get_geometry()
+        max_w = geometry.width * 0.9
+        max_h = geometry.height * 0.9
+        
+        pw, ph = pixbuf.get_width(), pixbuf.get_height()
+        scale = min(max_w/pw, max_h/ph, 1.0)
+        
+        if scale < 1.0:
+            pixbuf = pixbuf.scale_simple(int(pw*scale), int(ph*scale), GdkPixbuf.InterpType.BILINEAR)
+
+        self.set_default_size(pixbuf.get_width(), pixbuf.get_height())
+        
+        self.add_events(Gdk.EventMask.BUTTON_RELEASE_MASK)
+        self.connect("button-release-event", self._on_button_release)
+        self.connect("key-press-event", self._on_key_press)
+        
+        image = Gtk.Image.new_from_pixbuf(pixbuf)
+        self.add(image)
+        
+        self.show_all()
+        self.present()
+
+    def _on_key_press(self, widget, event):
+        self._close_preview(event)
+        return True
+
+    def _on_button_release(self, widget, event):
+        # Ignore releases within 250ms of creation (likely the "opening" click's release)
+        if time.time() - self._shown_at < 0.25:
+            return False
+        self._close_preview(event)
+        return True
+
+    def _close_preview(self, event):
+        parent = self.get_transient_for()
+        self.hide()
+        if parent:
+            if hasattr(event, "time"):
+                parent.present_with_time(event.time)
+            else:
+                parent.present()
+        self.destroy()
+
+# -------------------------
 # Package Details popup (GUI class)
 # -------------------------
 class PackageDetailsPopup(Gtk.Window):
@@ -204,6 +268,10 @@ class PackageDetailsPopup(Gtk.Window):
         self.action_button = None
         self.loaded_package_files = {}
         self.all_files = []
+        self._ignore_focus_out = False
+
+        # Close on focus out (e.g. clicking the main window)
+        self.connect("focus-out-event", self._on_focus_out)
 
         category = package_info.get("category", "")
         name = package_info.get("name", "")
@@ -497,16 +565,23 @@ class PackageDetailsPopup(Gtk.Window):
                 # Resize if too large (keep aspect ratio)
                 h = 200
                 w = int(pixbuf.get_width() * (h / pixbuf.get_height()))
-                pixbuf = pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
+                thumb_pixbuf = pixbuf.scale_simple(w, h, GdkPixbuf.InterpType.BILINEAR)
 
-                GLib.idle_add(self.add_screenshot_to_ui, pixbuf)
+                GLib.idle_add(self.add_screenshot_to_ui, thumb_pixbuf, pixbuf)
             except Exception:
                 pass
 
-    def add_screenshot_to_ui(self, pixbuf):
-        image = Gtk.Image.new_from_pixbuf(pixbuf)
-        self.screenshots_hbox.pack_start(image, False, False, 0)
-        image.show()
+    def add_screenshot_to_ui(self, thumb_pixbuf, full_pixbuf):
+        event_box = Gtk.EventBox()
+        event_box.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.ENTER_NOTIFY_MASK | Gdk.EventMask.LEAVE_NOTIFY_MASK)
+        event_box.connect("enter-notify-event", self.on_hover_cursor)
+        event_box.connect("leave-notify-event", self.on_leave_cursor)
+        event_box.connect("button-press-event", self.on_screenshot_clicked, full_pixbuf)
+
+        image = Gtk.Image.new_from_pixbuf(thumb_pixbuf)
+        event_box.add(image)
+        self.screenshots_hbox.pack_start(event_box, False, False, 0)
+        event_box.show_all()
         return False # GLib.idle_add callback should return False to not repeat
 
     def _update_description(self, summary, license_=""):
@@ -553,6 +628,23 @@ class PackageDetailsPopup(Gtk.Window):
             self.action_triggered = True
             self.on_action_callback(self.package_info)
         self.destroy()
+
+    def _on_focus_out(self, widget, event):
+        if not self._ignore_focus_out:
+            self.destroy()
+        return False
+
+    def on_screenshot_clicked(self, widget, event, full_pixbuf):
+        self._ignore_focus_out = True
+        preview = ScreenshotPreview(self, full_pixbuf)
+        preview.connect("destroy", lambda w: setattr(self, "_ignore_focus_out", False))
+        # Ensure preview is closed if the details window is destroyed
+        def cleanup_preview(w):
+            try:
+                if preview: preview.destroy()
+            except: pass
+        self.connect("destroy", cleanup_preview)
+        return True
 
     def load_definition_yaml(self, repository, category, name, version):
         try:
@@ -1907,7 +1999,6 @@ class SearchApp(Gtk.Window):
 
     def on_details_action(self, package_info):
         """Called when Install/Remove is clicked in the details window."""
-        self.enable_gui()
         iter_ = self.liststore.get_iter_first()
         is_flatpak = package_info.get("_flatpak", False)
         while iter_:
@@ -1953,10 +2044,10 @@ class SearchApp(Gtk.Window):
         # Inject the core sync command runner and action callback
         popup = PackageDetailsPopup(self.command_runner.run_sync, package_info, on_action_callback=self.on_details_action)
         
-        popup.set_modal(True)
-        popup.connect("destroy", lambda w: self.enable_gui() if not w.action_triggered else None)
+        popup.set_transient_for(self)
+        popup.set_modal(False)
+        popup.connect("destroy", lambda w: None) # self.enable_gui() no longer needed if we don't disable it
         popup.show_all()
-        self.disable_gui()
 
     def start_search_thread(self, search_cmd, advanced=False):
         self.search_box.show()
