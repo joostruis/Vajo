@@ -669,7 +669,7 @@ class PackageDetailsPopup(Gtk.Window):
         def cleanup_preview(w):
             try:
                 if preview: preview.destroy()
-            except: pass
+            except Exception: pass
         self.connect("destroy", cleanup_preview)
         return True
 
