@@ -689,13 +689,16 @@ class PackageDetailsPopup(Gtk.Window):
             copy_all_item = Gtk.MenuItem(label=_("Copy All Files"))
             copy_all_item.connect("activate", self.on_copy_all_files)
             menu.append(copy_all_item)
+            menu.attach_to_widget(widget, None)
+            self._ignore_focus_out = True
+            menu.connect("hide", lambda m: setattr(self, "_ignore_focus_out", False))
             menu.show_all()
             menu.popup_at_pointer(event)
             return True
         return False
     def on_copy_all_files(self, widget):
         clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
-        all_files_text = "\n".join([self.files_liststore.get_value(it, 0) for it in self.files_liststore])
+        all_files_text = "\n".join([row[0] for row in self.files_liststore])
         clipboard.set_text(all_files_text.strip(), -1)
     
     def load_required_by_info(self):
