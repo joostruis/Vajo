@@ -989,6 +989,13 @@ class LuetTUI:
             def on_success(): 
                 self.set_status(_("Repositories updated"))
                 self.init_app() # This updates self.sync_info
+                # Rebuild the description index so upgrade indicators (↑) reflect
+                # the newly synced repo data when viewing installed packages.
+                self._index_ready = False
+                self.desc_index.build_async(
+                    self.command_runner.run_sync,
+                    on_ready_callback=self._on_index_ready
+                )
                 
             # 3. On Error: Set error status
             def on_error(): 

@@ -2156,6 +2156,13 @@ class SearchApp(Gtk.Window):
         def on_success():
             self.set_status_message(_("Repositories updated"))
             self.update_sync_info_label()
+            # Rebuild the description index so upgrade indicators (↑) reflect
+            # the newly synced repo data when viewing installed packages.
+            self._index_ready = False
+            self.desc_index.build_async(
+                self.command_runner.run_sync,
+                on_ready_callback=self._on_index_ready
+            )
         def on_error(): self.set_status_message(_("Error updating repositories"))
         def on_finish(cookie):
             self.stop_spinner()
