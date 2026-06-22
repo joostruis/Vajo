@@ -148,7 +148,7 @@ class AboutInfo:
         
     @staticmethod
     def get_version():
-        return "0.9.7.3"
+        return "0.9.7.2"
 
     @staticmethod
     def get_copyright():
@@ -389,7 +389,8 @@ class RepositoryUpdater:
                              "--interactive=false", "-p", "/etc/luet/repos.conf.d"],
                             check=False,
                             stdout=_sp.DEVNULL,
-                            stderr=_sp.DEVNULL
+                            stderr=_sp.DEVNULL,
+                            timeout=30
                         )
                     except Exception as _e:
                         print("config-update failed (non-fatal):", _e, file=sys.stderr)
@@ -493,10 +494,11 @@ class SystemChecker:
                 candidates = SystemChecker._parse_reinstall_candidates(output)
                 
                 if candidates:
+                    on_reinstall_start_callback()
                     log_callback(_("Repair sequence started for {} missing packages.\n").format(len(candidates)))
                     found_message = _("Found {} missing packages. Starting repair immediately.\n").format(len(candidates))
                     log_callback(found_message)
-                    sleep_function(2.0) 
+                    sleep_function(2.0)
 
                     repair_ok = True
                     for pkg in candidates:
@@ -516,8 +518,9 @@ class SystemChecker:
                             log_callback(_("Failed reinstalling {}").format(pkg) + "\n")
                     
                     # This callback is responsible for main-thread scheduling
-                    on_reinstall_finish_callback(repair_ok) 
-                    return 
+                    on_reinstall_finish_callback(repair_ok)
+                    status_message = "_reinstall_handled_"  # sentinel: skip finally exit callback
+                    return
             pass
         except Exception as e:
             print("System check critical exception:", e, file=sys.stderr)
@@ -526,7 +529,10 @@ class SystemChecker:
             else:
                 status_message = _("System check failed due to exception")
         finally:
-            if status_message:
+            # Skip the exit callback when repair already handled completion.
+            if status_message == "_reinstall_handled_":
+                pass
+            elif status_message:
                 final_message = status_message
                 # This callback is responsible for main-thread scheduling
                 on_thread_exit_callback(final_message)
@@ -536,14 +542,13 @@ class SystemChecker:
 
 class SystemUpgrader:
     def __init__(
-        self, 
-        command_runner_realtime, 
-        log_callback, 
-        status_callback, 
-        schedule_callback, 
-        post_action_callback, 
+        self,
+        command_runner_realtime,
+        log_callback,
+        status_callback,
+        schedule_callback,
+        post_action_callback,
         on_finish_callback,
-        inhibit_cookie,
         translation_func
     ):
         self.command_runner = command_runner_realtime
@@ -552,7 +557,6 @@ class SystemUpgrader:
         self.schedule_callback = schedule_callback
         self.post_action_callback = post_action_callback
         self.on_finish_callback = on_finish_callback
-        self.inhibit_cookie = inhibit_cookie
         self._ = translation_func
         self.collected_lines = []
 
@@ -977,6 +981,8 @@ class DescriptionIndex:
         files, then reads them with a privileged Python subprocess so that
         root-only paths under /var/luet/db/repos are accessible.
         """
+        # Reset the event so wait_until_ready() blocks correctly during a rebuild.
+        self._ready_event.clear()
         def worker():
             index = {}
             Debug.log("DescriptionIndex: build started")

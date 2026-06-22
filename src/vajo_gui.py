@@ -1950,13 +1950,15 @@ class SearchApp(Gtk.Window):
             scope = self._get_flatpak_scope(app_id)
 
         if operation == "install":
+            remote     = (package_info or {}).get("repository", "flathub") or "flathub"
             question   = _("Do you want to install {}?").format(display_label)
-            secondary  = _("This will install the Flatpak from Flathub.")
+            secondary  = _("This will install the Flatpak from {}.").format(remote)
             action_msg = _("Installing {}...").format(display_label)
             ok_msg     = _("Installed {}.").format(display_label)
             err_msg    = _("Error installing {}").format(display_label)
             run_op     = lambda cb: FlatpakOperations.run_installation(
-                self.command_runner.run_realtime, self.append_to_log, cb, app_id)
+                self.command_runner.run_realtime, self.append_to_log, cb, app_id,
+                remote=remote, scope=scope)
         elif operation == "remove":
             question   = _("Do you want to remove {}?").format(display_label)
             secondary  = _("This will remove the Flatpak application.")
@@ -2248,24 +2250,22 @@ class SearchApp(Gtk.Window):
             if returncode == 0:
                 # 1. Refresh cache
                 self.refresh_installed_packages_cache()
-                self.set_status_message(message)
                 self.update_sync_info_label()
                 # 2. Re-run search to update the list with new cache data
                 self._redisplay_current_view(spinner_msg=_("Searching for {}...").format(self.last_search))
+                self.set_status_message(_("Ready"))
             else:
                 self.set_status_message(_("Error during system upgrade") if message.startswith("System") else message)
             self.enable_gui()
-            self.set_status_message(_("Ready"))
 
         # Call the Core logic
         upgrader = SystemUpgrader(
             command_runner_realtime = self.command_runner.run_realtime,
             log_callback = self.append_to_log,
             status_callback = self.set_status_message,
-            schedule_callback = GLib.idle_add, # <-- Pass the GTK scheduler
+            schedule_callback = GLib.idle_add,
             post_action_callback = PackageOperations._run_kbuildsycoca6,
             on_finish_callback = on_finish,
-            inhibit_cookie = self.inhibit_cookie,
             translation_func = _
         )
         threading.Thread(target=upgrader.start_upgrade, daemon=True).start()

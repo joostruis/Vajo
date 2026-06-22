@@ -373,14 +373,15 @@ class AppstreamIndex:
                 # --- 1. SILENT FLATHUB INITIALIZATION ---
                 try:
                     # Check if flathub exists
-                    res = subprocess.run(["flatpak", "remotes", "--columns=name"], capture_output=True, text=True)
+                    res = subprocess.run(["flatpak", "remotes", "--columns=name"], capture_output=True, text=True, timeout=10)
                     if "flathub" not in res.stdout:
                         if "--debug" in sys.argv:
                             print("[DEBUG] flatpak: Flathub remote not found, adding for current user", flush=True)
                         # Using --user prevents background threads from hanging on sudo/polkit prompts
                         subprocess.run(
                             ["flatpak", "remote-add", "--user", "--if-not-exists", "flathub", "https://dl.flathub.org/repo/flathub.flatpakrepo"],
-                            capture_output=True
+                            capture_output=True,
+                            timeout=30
                         )
                 except Exception as e:
                     print(f"flatpak: Failed to add Flathub remote: {e}", file=sys.stderr)
@@ -391,7 +392,7 @@ class AppstreamIndex:
                     if "--debug" in sys.argv:
                         print("[DEBUG] flatpak: AppStream cache missing, fetching...", flush=True)
                     try:
-                        subprocess.run(["flatpak", "update", "--appstream"], capture_output=True)
+                        subprocess.run(["flatpak", "update", "--appstream"], capture_output=True, timeout=60)
                         paths = _find_appstream_files()
                     except Exception as e:
                         print(f"flatpak: Failed to fetch AppStream cache: {e}", file=sys.stderr)
@@ -670,8 +671,9 @@ class FlatpakOperations:
     """
 
     @staticmethod
-    def build_install_command(app_id: str) -> list:
-        return ["flatpak", "install", "--system", "-y", "--noninteractive", "flathub", app_id]
+    def build_install_command(app_id: str, remote: str = "flathub", scope: str = "system") -> list:
+        scope_flag = "--user" if scope == "user" else "--system"
+        return ["flatpak", "install", scope_flag, "-y", "--noninteractive", remote, app_id]
 
     @staticmethod
     def build_remove_command(app_id: str, scope: str = "system") -> list:
@@ -686,9 +688,10 @@ class FlatpakOperations:
         return ["flatpak", "update", scope_flag, "-y", "--noninteractive", app_id]
 
     @staticmethod
-    def run_installation(command_runner_realtime, log_callback, on_finish_callback, app_id: str):
+    def run_installation(command_runner_realtime, log_callback, on_finish_callback,
+                         app_id: str, remote: str = "flathub", scope: str = "system"):
         command_runner_realtime(
-            FlatpakOperations.build_install_command(app_id),
+            FlatpakOperations.build_install_command(app_id, remote=remote, scope=scope),
             require_root=False,
             on_line_received=log_callback,
             on_finished=on_finish_callback,

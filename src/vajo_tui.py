@@ -1085,7 +1085,6 @@ class LuetTUI:
                     schedule_callback=self.scheduler.schedule,
                     post_action_callback=lambda: self.scheduler.schedule(on_post_action),
                     on_finish_callback=on_finish,
-                    inhibit_cookie=0,
                     translation_func=_
                 )
                 upgrader.start_upgrade()
@@ -1520,7 +1519,8 @@ class LuetTUI:
         if pkg.get("_flatpak", False):
             app_id = pkg["name"]
             display_label = pkg.get("_flatpak_label", app_id)
-            scope = pkg.get("_flatpak_scope", "system")
+            scope  = pkg.get("_flatpak_scope", "system")
+            remote = pkg.get("repository", "flathub") or "flathub"
             if installed:
                 if not self.confirm_yes_no(_("Do you want to remove {}?").format(display_label)):
                     return
@@ -1576,10 +1576,11 @@ class LuetTUI:
                         self.command_runner.run_realtime,
                         lambda ln: self.scheduler.schedule(self.append_to_log, ln),
                         lambda rc: self.scheduler.schedule(on_flatpak_install_done, rc),
-                        app_id
+                        app_id,
+                        remote=remote,
+                        scope=scope
                     )
                 except Exception as e:
-                    self.set_status(_("Error installing package"))
                     self.set_status(_("Error installing package"))
             return
 
