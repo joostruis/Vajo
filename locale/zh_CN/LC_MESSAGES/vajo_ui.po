@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Vajo VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-06-01 23:51+0200\n"
+"POT-Creation-Date: 2026-06-26 22:59+0200\n"
 "PO-Revision-Date: 2026-05-26 12:00+0800\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (Simplified) <zh_CN@li.org>\n"
@@ -16,24 +16,24 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 
-#: src/vajo_gui.py:93 src/vajo_gui.py:822 src/vajo_tui.py:169
-#: src/vajo_tui.py:337 src/vajo_tui.py:1123
+#: vajo_gui.py:87 vajo_gui.py:1056 vajo_tui.py:169 vajo_tui.py:337
+#: vajo_tui.py:1133
 msgid "Preferences"
 msgstr "首选项"
 
-#: src/vajo_gui.py:96 src/vajo_gui.py:372 src/vajo_gui.py:2083
+#: vajo_gui.py:90 vajo_gui.py:501 vajo_gui.py:2347
 msgid "Close"
 msgstr "关闭"
 
-#: src/vajo_gui.py:111
+#: vajo_gui.py:105
 msgid "Modules"
 msgstr "模块"
 
-#: src/vajo_gui.py:116 src/vajo_tui.py:1131
+#: vajo_gui.py:110 vajo_tui.py:1141
 msgid "Enable Flatpak support (Flathub)"
 msgstr "启用 Flatpak 支持 (Flathub)"
 
-#: src/vajo_gui.py:120
+#: vajo_gui.py:114
 msgid ""
 "Search and install Flatpak applications from Flathub.\n"
 "Requires flatpak to be installed (apps/flatpak).\n"
@@ -43,15 +43,15 @@ msgstr ""
 "需要安装 flatpak (apps/flatpak)。\n"
 "重启 Vajo 后生效。"
 
-#: src/vajo_gui.py:124
+#: vajo_gui.py:118
 msgid "Flatpak is not installed on this system (apps/flatpak required)."
 msgstr "系统未安装 Flatpak (需要 apps/flatpak)。"
 
-#: src/vajo_gui.py:130 src/vajo_tui.py:1132
+#: vajo_gui.py:124 vajo_tui.py:1142
 msgid "Enable Rollback support"
 msgstr "启用回滚支持"
 
-#: src/vajo_gui.py:134
+#: vajo_gui.py:128
 msgid ""
 "Show the Roll back item in the File menu.\n"
 "Takes effect after restarting Vajo."
@@ -59,444 +59,456 @@ msgstr ""
 "在文件菜单中显示“回滚”选项。\n"
 "重启 Vajo 后生效。"
 
-#: src/vajo_gui.py:137
+#: vajo_gui.py:131
 msgid "Rollback is only available on systems using stable repositories."
 msgstr "回滚功能仅在使用稳定仓库的系统上可用。"
 
-#: src/vajo_gui.py:142 src/vajo_tui.py:1166
-msgid "Changes take effect after restarting Vajo."
+#: vajo_gui.py:138
+msgid "Appearance"
+msgstr ""
+
+#: vajo_gui.py:143
+msgid "Prefer dark theme"
+msgstr ""
+
+#: vajo_gui.py:146
+msgid ""
+"Force Vajo to use the dark GTK theme variant.\n"
+"Overrides the system theme preference.\n"
+"Takes effect immediately."
+msgstr ""
+
+#: vajo_gui.py:153
+#, fuzzy
+msgid "Module changes take effect after restarting Vajo."
 msgstr "更改将在重启 Vajo 后生效。"
 
-#: src/vajo_gui.py:165
+#: vajo_gui.py:186
 msgid "Visit our website"
 msgstr "访问我们的网站"
 
-#: src/vajo_gui.py:178
+#: vajo_gui.py:199
 msgid "Git repository"
 msgstr "Git 仓库"
 
-#: src/vajo_gui.py:199
+#: vajo_gui.py:216
+msgid "Screenshot Preview"
+msgstr ""
+
+#: vajo_gui.py:284
 msgid "Package Details"
 msgstr "软件包详情"
 
-#: src/vajo_gui.py:241
+#: vajo_gui.py:331
 msgid "Package:"
 msgstr "软件包："
 
-#: src/vajo_gui.py:242
+#: vajo_gui.py:332
 msgid "Version:"
 msgstr "版本："
 
-#: src/vajo_gui.py:243
+#: vajo_gui.py:333
 msgid "Installed:"
 msgstr "已安装："
 
-#: src/vajo_gui.py:243 src/vajo_tui.py:1696 src/vajo_core.py:1217
+#: vajo_gui.py:333 vajo_tui.py:1691 vajo_core.py:1296
 msgid "Yes"
 msgstr "是"
 
-#: src/vajo_gui.py:243 src/vajo_tui.py:1696 src/vajo_core.py:1217
+#: vajo_gui.py:333 vajo_tui.py:1691 vajo_core.py:1296
 msgid "No"
 msgstr "否"
 
-#: src/vajo_gui.py:261 src/vajo_gui.py:308
+#: vajo_gui.py:359 vajo_gui.py:411
 msgid "Homepage:"
 msgstr "主页："
 
-#: src/vajo_gui.py:263 src/vajo_gui.py:312
+#: vajo_gui.py:361 vajo_gui.py:418
 msgid "Repository:"
 msgstr "仓库："
 
-#: src/vajo_gui.py:268 src/vajo_gui.py:315
+#: vajo_gui.py:366 vajo_gui.py:422
 msgid "Description:"
 msgstr "描述："
 
-#: src/vajo_gui.py:273 src/vajo_gui.py:318
+#: vajo_gui.py:371 vajo_gui.py:428
 msgid "License:"
 msgstr "许可证："
 
-#: src/vajo_gui.py:325
+#: vajo_gui.py:454
 msgid "Required by"
 msgstr "被以下软件包依赖"
 
-#: src/vajo_gui.py:337
+#: vajo_gui.py:466
 msgid "Package files"
 msgstr "软件包文件"
 
-#: src/vajo_gui.py:339
+#: vajo_gui.py:468
 msgid "Filter files..."
 msgstr "筛选文件..."
 
-#: src/vajo_gui.py:344 src/vajo_gui.py:819 src/vajo_tui.py:162
+#: vajo_gui.py:473 vajo_gui.py:1053 vajo_tui.py:162
 msgid "File"
 msgstr "文件"
 
-#: src/vajo_gui.py:378 src/vajo_tui.py:815
+#: vajo_gui.py:507 vajo_tui.py:819
 msgid "Update"
 msgstr "更新"
 
-#: src/vajo_gui.py:382 src/vajo_gui.py:1287 src/vajo_gui.py:1289
-#: src/vajo_tui.py:817 src/vajo_tui.py:819
+#: vajo_gui.py:511 vajo_gui.py:1372 vajo_gui.py:1540 vajo_gui.py:1542
+#: vajo_tui.py:821 vajo_tui.py:823
 msgid "Remove"
 msgstr "移除"
 
-#: src/vajo_gui.py:382 src/vajo_gui.py:1287 src/vajo_gui.py:1291
-#: src/vajo_gui.py:1483 src/vajo_tui.py:817 src/vajo_tui.py:821
+#: vajo_gui.py:511 vajo_gui.py:1540 vajo_gui.py:1544 vajo_gui.py:1747
+#: vajo_tui.py:821 vajo_tui.py:825
 msgid "Install"
 msgstr "安装"
 
-#: src/vajo_gui.py:498
+#: vajo_gui.py:689
 msgid "Copy All Files"
 msgstr "复制所有文件"
 
-#: src/vajo_gui.py:517
+#: vajo_gui.py:711
 msgid "Checking dependencies..."
 msgstr "正在检查依赖关系..."
 
-#: src/vajo_gui.py:523
+#: vajo_gui.py:717
 msgid "Error retrieving required by information."
 msgstr "获取依赖关系信息时出错。"
 
-#: src/vajo_gui.py:537
+#: vajo_gui.py:731
 msgid "Cannot remove: other packages depend on this one"
 msgstr "无法移除：其他软件包依赖此软件包"
 
-#: src/vajo_gui.py:539
+#: vajo_gui.py:733
 msgid "There are no packages installed that require this package."
 msgstr "没有已安装的软件包依赖此软件包。"
 
-#: src/vajo_gui.py:553
+#: vajo_gui.py:747
 msgid "Loading..."
 msgstr "加载中..."
 
-#: src/vajo_gui.py:564
+#: vajo_gui.py:758
 msgid "Error retrieving package files information."
 msgstr "获取软件包文件信息时出错。"
 
-#: src/vajo_gui.py:567
+#: vajo_gui.py:761
 msgid "No files found for this package."
 msgstr "未找到此软件包的文件。"
 
-#: src/vajo_gui.py:596
+#: vajo_gui.py:790
 msgid "revdeps failed:"
 msgstr "反向依赖检查失败："
 
-#: src/vajo_gui.py:605
+#: vajo_gui.py:799
 msgid "Error retrieving required by info:"
 msgstr "获取依赖关系信息时出错："
 
-#: src/vajo_gui.py:613
+#: vajo_gui.py:807
 msgid "search for package failed:"
 msgstr "搜索软件包失败："
 
-#: src/vajo_gui.py:621
+#: vajo_gui.py:815
 msgid "Error retrieving package files info:"
 msgstr "获取软件包文件信息时出错："
 
-#: src/vajo_gui.py:630
+#: vajo_gui.py:824
 msgid "Luet Package Search"
 msgstr "Luet 软件包搜索"
 
-#: src/vajo_gui.py:686
+#: vajo_gui.py:889
 msgid "Warning: no pkexec/sudo found - admin actions will fail"
 msgstr "警告：未找到 pkexec/sudo - 管理员操作将失败"
 
-#: src/vajo_gui.py:690 src/vajo_tui.py:432
+#: vajo_gui.py:893 vajo_tui.py:436
 msgid "Initializing..."
 msgstr "初始化中..."
 
-#: src/vajo_gui.py:749 src/vajo_gui.py:907 src/vajo_gui.py:1571
-#: src/vajo_gui.py:1853 src/vajo_gui.py:1869 src/vajo_gui.py:1910
-#: src/vajo_gui.py:1943 src/vajo_gui.py:1994 src/vajo_gui.py:2024
-#: src/vajo_tui.py:360 src/vajo_tui.py:520 src/vajo_tui.py:591
-#: src/vajo_tui.py:636 src/vajo_tui.py:1000 src/vajo_tui.py:1046
-#: src/vajo_tui.py:1097 src/vajo_tui.py:1099 src/vajo_tui.py:1200
-#: src/vajo_tui.py:1262 src/vajo_tui.py:1271 src/vajo_tui.py:1284
-#: src/vajo_tui.py:1299 src/vajo_tui.py:1319 src/vajo_tui.py:1395
-#: src/vajo_tui.py:1496 src/vajo_tui.py:1604 src/vajo_tui.py:2238
-#: src/vajo_tui.py:2270 src/vajo_core.py:522
+#: vajo_gui.py:952 vajo_gui.py:1140 vajo_gui.py:1835 vajo_gui.py:2112
+#: vajo_gui.py:2128 vajo_gui.py:2176 vajo_gui.py:2209 vajo_gui.py:2256
+#: vajo_gui.py:2288 vajo_tui.py:364 vajo_tui.py:524 vajo_tui.py:595
+#: vajo_tui.py:640 vajo_tui.py:1011 vajo_tui.py:1057 vajo_tui.py:1107
+#: vajo_tui.py:1109 vajo_tui.py:1210 vajo_tui.py:1272 vajo_tui.py:1281
+#: vajo_tui.py:1294 vajo_tui.py:1309 vajo_tui.py:1329 vajo_tui.py:1388
+#: vajo_tui.py:1489 vajo_tui.py:1599 vajo_tui.py:2233 vajo_tui.py:2265
+#: vajo_core.py:541
 msgid "Ready"
 msgstr "就绪"
 
-#: src/vajo_gui.py:778 src/vajo_tui.py:168 src/vajo_tui.py:271
-#: src/vajo_tui.py:319
+#: vajo_gui.py:1016 vajo_tui.py:168 vajo_tui.py:271 vajo_tui.py:319
 msgid "Update repositories"
 msgstr "更新仓库"
 
-#: src/vajo_gui.py:782 src/vajo_tui.py:168 src/vajo_tui.py:272
-#: src/vajo_tui.py:322
+#: vajo_gui.py:1020 vajo_tui.py:168 vajo_tui.py:272 vajo_tui.py:322
 msgid "Full system upgrade"
 msgstr "系统完整升级"
 
-#: src/vajo_gui.py:785 src/vajo_tui.py:168 src/vajo_tui.py:325
+#: vajo_gui.py:1023 vajo_tui.py:168 vajo_tui.py:325
 msgid "Installed packages"
 msgstr "已安装的软件包"
 
-#: src/vajo_gui.py:788 src/vajo_tui.py:168 src/vajo_tui.py:327
+#: vajo_gui.py:1026 vajo_tui.py:168 vajo_tui.py:327
 msgid "Check system"
 msgstr "检查系统"
 
-#: src/vajo_gui.py:791 src/vajo_gui.py:2063 src/vajo_gui.py:2177
-#: src/vajo_tui.py:231 src/vajo_tui.py:332
+#: vajo_gui.py:1029 vajo_gui.py:2327 vajo_gui.py:2441 vajo_tui.py:231
+#: vajo_tui.py:332
 msgid "Roll back"
 msgstr "回滚"
 
-#: src/vajo_gui.py:799 src/vajo_gui.py:2050 src/vajo_tui.py:190
-#: src/vajo_core.py:664
+#: vajo_gui.py:1033 vajo_gui.py:2314 vajo_tui.py:190 vajo_core.py:681
 msgid "Clear Luet cache"
 msgstr "清除 Luet 缓存"
 
-#: src/vajo_gui.py:802 src/vajo_tui.py:168 src/vajo_tui.py:317
+#: vajo_gui.py:1036 vajo_tui.py:168 vajo_tui.py:317
 msgid "Quit"
 msgstr "退出"
 
-#: src/vajo_gui.py:806 src/vajo_tui.py:1388
+#: vajo_gui.py:1040 vajo_tui.py:1386
 msgid "System Information"
 msgstr ""
 
-#: src/vajo_gui.py:810 src/vajo_tui.py:170 src/vajo_tui.py:339
+#: vajo_gui.py:1044 vajo_tui.py:170 vajo_tui.py:341
 msgid "Documentation"
 msgstr "文档"
 
-#: src/vajo_gui.py:813
+#: vajo_gui.py:1047
 msgid "Donate"
 msgstr ""
 
-#: src/vajo_gui.py:816 src/vajo_tui.py:170 src/vajo_tui.py:343
-#: src/vajo_tui.py:345
+#: vajo_gui.py:1050 vajo_tui.py:170 vajo_tui.py:346 vajo_tui.py:349
 msgid "About"
 msgstr "关于"
 
-#: src/vajo_gui.py:825 src/vajo_tui.py:162
+#: vajo_gui.py:1059 vajo_tui.py:162
 msgid "Edit"
 msgstr "编辑"
 
-#: src/vajo_gui.py:827 src/vajo_tui.py:162
+#: vajo_gui.py:1061 vajo_tui.py:162
 msgid "Help"
 msgstr "帮助"
 
-#: src/vajo_gui.py:920 src/vajo_tui.py:746
+#: vajo_gui.py:1153 vajo_tui.py:750
 msgid "Enter package name"
 msgstr "输入软件包名称"
 
-#: src/vajo_gui.py:924
+#: vajo_gui.py:1157
 msgid "Advanced"
 msgstr "高级"
 
-#: src/vajo_gui.py:926
+#: vajo_gui.py:1159
 msgid "Check this box to also search inside filenames and labels"
 msgstr "勾选此项以同时在文件名和标签中搜索"
 
-#: src/vajo_gui.py:929 src/vajo_tui.py:734
+#: vajo_gui.py:1162 vajo_tui.py:738
 msgid "Search"
 msgstr "搜索"
 
-#: src/vajo_gui.py:952 src/vajo_tui.py:793
+#: vajo_gui.py:1185 vajo_tui.py:797
 msgid "Category"
 msgstr "类别"
 
-#: src/vajo_gui.py:953 src/vajo_tui.py:793
+#: vajo_gui.py:1186 vajo_tui.py:797
 msgid "Name"
 msgstr "名称"
 
-#: src/vajo_gui.py:955 src/vajo_gui.py:2213 src/vajo_tui.py:793
-#: src/vajo_core.py:1199
+#: vajo_gui.py:1188 vajo_gui.py:2477 vajo_tui.py:797 vajo_core.py:1278
 msgid "Version"
 msgstr "版本"
 
-#: src/vajo_gui.py:956 src/vajo_tui.py:793 src/vajo_core.py:1204
+#: vajo_gui.py:1189 vajo_tui.py:797 vajo_core.py:1283
 msgid "Repository"
 msgstr "仓库"
 
-#: src/vajo_gui.py:957 src/vajo_gui.py:987 src/vajo_tui.py:793
+#: vajo_gui.py:1190 vajo_gui.py:1220 vajo_tui.py:797
 msgid "Action"
 msgstr "操作"
 
-#: src/vajo_gui.py:958 src/vajo_gui.py:1306
+#: vajo_gui.py:1191 vajo_gui.py:1565
 msgid "Details"
 msgstr "详情"
 
-#: src/vajo_gui.py:1051
+#: vajo_gui.py:1284
 #, fuzzy
 msgid "Back to Search"
 msgstr "Luet 软件包搜索"
 
-#: src/vajo_gui.py:1064 src/vajo_tui.py:849 src/vajo_tui.py:874
+#: vajo_gui.py:1302 vajo_tui.py:853 vajo_tui.py:878
 msgid "Toggle output log"
 msgstr "切换输出日志"
 
-#: src/vajo_gui.py:1179 src/vajo_gui.py:1562 src/vajo_tui.py:1040
-#: src/vajo_tui.py:1313 src/vajo_tui.py:1371 src/vajo_tui.py:1605
+#: vajo_gui.py:1433 vajo_gui.py:1826 vajo_tui.py:1051 vajo_tui.py:1323
+#: vajo_tui.py:1381 vajo_tui.py:1600
 msgid "installed"
 msgstr "已安装"
 
-#: src/vajo_gui.py:1201 src/vajo_tui.py:1416
+#: vajo_gui.py:1454 vajo_tui.py:1409
 msgid "Invalid search query"
 msgstr "无效的搜索查询"
 
-#: src/vajo_gui.py:1211 src/vajo_gui.py:1990 src/vajo_tui.py:1404
+#: vajo_gui.py:1464 vajo_gui.py:2255 vajo_tui.py:1397
 msgid "Searching for {}..."
 msgstr "正在搜索 {}..."
 
-#: src/vajo_gui.py:1285 src/vajo_tui.py:812 src/vajo_tui.py:1596
+#: vajo_gui.py:1538 vajo_tui.py:816 vajo_tui.py:1591
 msgid "Protected"
 msgstr "受保护"
 
-#: src/vajo_gui.py:1352 src/vajo_tui.py:1495
+#: vajo_gui.py:1621 vajo_tui.py:1488
 msgid "Found {} results matching '{}'"
 msgstr "找到 {} 个匹配 '{}' 的结果"
 
-#: src/vajo_gui.py:1353 src/vajo_gui.py:1869
+#: vajo_gui.py:1622 vajo_gui.py:2128
 msgid "No results"
 msgstr "无结果"
 
-#: src/vajo_gui.py:1360
+#: vajo_gui.py:1627
 msgid "Error processing search results:"
 msgstr "处理搜索结果时出错："
 
-#: src/vajo_gui.py:1361
+#: vajo_gui.py:1628
 msgid "Error displaying search results"
 msgstr "显示搜索结果时出错"
 
-#: src/vajo_gui.py:1548 src/vajo_tui.py:1595 src/vajo_tui.py:1743
+#: vajo_gui.py:1812 vajo_tui.py:1590 vajo_tui.py:1738
 msgid "This package ({}) is protected and can't be removed."
 msgstr "此软件包 ({}) 受保护，无法移除。"
 
-#: src/vajo_gui.py:1567
+#: vajo_gui.py:1831
 msgid "Searching again for '{}'..."
 msgstr "正在重新搜索 '{}'..."
 
-#: src/vajo_gui.py:1583 src/vajo_gui.py:1692 src/vajo_tui.py:1561
-#: src/vajo_tui.py:1644
+#: vajo_gui.py:1847 vajo_gui.py:1954 vajo_tui.py:1555 vajo_tui.py:1639
 msgid "Do you want to install {}?"
 msgstr "是否要安装 {}？"
 
-#: src/vajo_gui.py:1594 src/vajo_gui.py:1595 src/vajo_gui.py:1694
-#: src/vajo_tui.py:1563 src/vajo_tui.py:1648
+#: vajo_gui.py:1857 vajo_gui.py:1858 vajo_gui.py:1956 vajo_tui.py:1557
+#: vajo_tui.py:1643
 msgid "Installing {}..."
 msgstr "正在安装 {}..."
 
-#: src/vajo_gui.py:1603 src/vajo_gui.py:1641 src/vajo_tui.py:1030
-#: src/vajo_tui.py:1624 src/vajo_tui.py:1657
+#: vajo_gui.py:1865 vajo_gui.py:1902 vajo_tui.py:1041 vajo_tui.py:1619
+#: vajo_tui.py:1652
 msgid "Finalizing: Updating package cache..."
 msgstr "正在完成：更新软件包缓存..."
 
-#: src/vajo_gui.py:1611 src/vajo_gui.py:1618 src/vajo_tui.py:1588
-#: src/vajo_tui.py:1589
+#: vajo_gui.py:1873 vajo_gui.py:1880 vajo_tui.py:1584
 msgid "Error installing package"
 msgstr "安装软件包时出错"
 
-#: src/vajo_gui.py:1623 src/vajo_tui.py:1612
+#: vajo_gui.py:1885 vajo_tui.py:1607
 msgid "Do you want to uninstall {}?"
 msgstr "是否要卸载 {}？"
 
-#: src/vajo_gui.py:1624
+#: vajo_gui.py:1886
 msgid ""
 "This will remove the package and its dependencies not required by other "
 "packages."
 msgstr "这将移除该软件包及其不被其他软件包依赖的依赖项。"
 
-#: src/vajo_gui.py:1632 src/vajo_gui.py:1633 src/vajo_tui.py:1615
+#: vajo_gui.py:1894 vajo_gui.py:1895 vajo_tui.py:1610
 msgid "Uninstalling {}..."
 msgstr "正在卸载 {}..."
 
-#: src/vajo_gui.py:1649
+#: vajo_gui.py:1910
 msgid "Error uninstalling package: '{}'"
 msgstr "卸载软件包时出错：'{}'"
 
-#: src/vajo_gui.py:1663
+#: vajo_gui.py:1924
 msgid "Error uninstalling package"
 msgstr "卸载软件包时出错"
 
-#: src/vajo_gui.py:1672
+#: vajo_gui.py:1933
 msgid "Refreshing results..."
 msgstr "正在刷新结果..."
 
-#: src/vajo_gui.py:1693
-msgid "This will install the Flatpak from Flathub."
+#: vajo_gui.py:1955
+#, fuzzy
+msgid "This will install the Flatpak from {}."
 msgstr "这将从 Flathub 安装 Flatpak 应用程序。"
 
-#: src/vajo_gui.py:1695 src/vajo_tui.py:1570
+#: vajo_gui.py:1957 vajo_tui.py:1564
 msgid "Installed {}."
 msgstr "已安装 {}。"
 
-#: src/vajo_gui.py:1696
+#: vajo_gui.py:1958
 msgid "Error installing {}"
 msgstr "安装 {} 时出错"
 
-#: src/vajo_gui.py:1702 src/vajo_tui.py:1531
+#: vajo_gui.py:1963 vajo_tui.py:1525
 msgid "Do you want to remove {}?"
 msgstr "是否要移除 {}？"
 
-#: src/vajo_gui.py:1703
+#: vajo_gui.py:1964
 msgid "This will remove the Flatpak application."
 msgstr "这将移除 Flatpak 应用程序。"
 
-#: src/vajo_gui.py:1704 src/vajo_tui.py:1533
+#: vajo_gui.py:1965 vajo_tui.py:1527
 msgid "Removing {}..."
 msgstr "正在移除 {}..."
 
-#: src/vajo_gui.py:1705 src/vajo_tui.py:1540
+#: vajo_gui.py:1966 vajo_tui.py:1534
 msgid "Removed {}."
 msgstr "已移除 {}。"
 
-#: src/vajo_gui.py:1706
+#: vajo_gui.py:1967
 msgid "Error removing {}"
 msgstr "移除 {} 时出错"
 
-#: src/vajo_gui.py:1711 src/vajo_tui.py:1857
+#: vajo_gui.py:1971 vajo_tui.py:1852
 msgid "Do you want to update {}?"
 msgstr "是否要移除 {}？"
 
-#: src/vajo_gui.py:1712
+#: vajo_gui.py:1972
 msgid "This will update the Flatpak application to the latest version."
 msgstr "这将移除 Flatpak 应用程序。"
 
-#: src/vajo_gui.py:1713 src/vajo_tui.py:1860
+#: vajo_gui.py:1973 vajo_tui.py:1855
 msgid "Updating {}..."
 msgstr "正在卸载 {}..."
 
-#: src/vajo_gui.py:1714 src/vajo_tui.py:1871
+#: vajo_gui.py:1974 vajo_tui.py:1866
 msgid "Updated {}."
 msgstr ""
 
-#: src/vajo_gui.py:1715 src/vajo_tui.py:1873
+#: vajo_gui.py:1975 vajo_tui.py:1868
 msgid "Error updating {}"
 msgstr "安装 {} 时出错"
 
-#: src/vajo_gui.py:1809
+#: vajo_gui.py:2068
 msgid "Please search for the package first."
 msgstr "请先搜索软件包。"
 
-#: src/vajo_gui.py:1893 src/vajo_tui.py:979
+#: vajo_gui.py:2152 vajo_tui.py:983
 msgid "Updating repositories..."
 msgstr "正在更新仓库..."
 
-#: src/vajo_gui.py:1900 src/vajo_tui.py:986
+#: vajo_gui.py:2159 vajo_tui.py:990
 msgid "Repositories updated"
 msgstr "仓库已更新"
 
-#: src/vajo_gui.py:1902 src/vajo_gui.py:1909 src/vajo_tui.py:991
+#: vajo_gui.py:2168 vajo_gui.py:2175 vajo_tui.py:1002
 msgid "Error updating repositories"
 msgstr "更新仓库时出错"
 
-#: src/vajo_gui.py:1930 src/vajo_tui.py:1090
+#: vajo_gui.py:2196 vajo_tui.py:1100
 msgid "Checking system for missing files..."
 msgstr "正在检查系统缺失文件..."
 
-#: src/vajo_gui.py:1938
+#: vajo_gui.py:2204
 msgid "Missing files: preparing to reinstall..."
 msgstr "缺失文件：准备重新安装..."
 
-#: src/vajo_gui.py:1943 src/vajo_tui.py:1105
+#: vajo_gui.py:2209 vajo_tui.py:1115
 msgid "Could not repair some packages"
 msgstr "无法修复部分软件包"
 
-#: src/vajo_gui.py:1962 src/vajo_tui.py:1017
+#: vajo_gui.py:2228 vajo_tui.py:1028
 msgid "Perform a full system upgrade?"
 msgstr "是否执行系统完整升级？"
 
-#: src/vajo_gui.py:1963
+#: vajo_gui.py:2229
 msgid ""
 "This will update all repositories and then upgrade all installed packages. "
 "This action may take some time and requires an internet connection."
@@ -504,55 +516,55 @@ msgstr ""
 "这将更新所有仓库，然后升级所有已安装的软件包。\n"
 "此操作可能需要一些时间，并且需要互联网连接。"
 
-#: src/vajo_gui.py:1970
+#: vajo_gui.py:2236
 msgid "Performing full system upgrade"
 msgstr "正在执行系统完整升级"
 
-#: src/vajo_gui.py:1973 src/vajo_tui.py:1021
+#: vajo_gui.py:2239 vajo_tui.py:1032
 msgid "Performing full system upgrade..."
 msgstr "正在执行系统完整升级..."
 
-#: src/vajo_gui.py:1992 src/vajo_tui.py:1058
+#: vajo_gui.py:2258 vajo_tui.py:1069
 msgid "Error during system upgrade"
 msgstr "系统升级过程中出错"
 
-#: src/vajo_gui.py:2010 src/vajo_tui.py:1189
+#: vajo_gui.py:2274 vajo_tui.py:1199
 msgid "Clear Luet cache?"
 msgstr "是否清除 Luet 缓存？"
 
-#: src/vajo_gui.py:2011
+#: vajo_gui.py:2275
 msgid "This will run 'luet cleanup' and remove cached package data."
 msgstr "这将运行 'luet cleanup' 并移除缓存的软件包数据。"
 
-#: src/vajo_gui.py:2020 src/vajo_tui.py:1191
+#: vajo_gui.py:2284 vajo_tui.py:1201
 msgid "Clearing Luet cache..."
 msgstr "正在清除 Luet 缓存..."
 
-#: src/vajo_gui.py:2024 src/vajo_tui.py:1204
+#: vajo_gui.py:2288 vajo_tui.py:1214
 msgid "Error clearing Luet cache"
 msgstr "清除 Luet 缓存时出错"
 
-#: src/vajo_gui.py:2040 src/vajo_tui.py:685
+#: vajo_gui.py:2304 vajo_tui.py:689
 msgid "Last sync: {}"
 msgstr "上次同步：{}"
 
-#: src/vajo_gui.py:2047 src/vajo_core.py:662
+#: vajo_gui.py:2311 vajo_core.py:679
 msgid "Clear Luet cache ({})"
 msgstr "清除 Luet 缓存 ({})"
 
-#: src/vajo_gui.py:2058 src/vajo_tui.py:231 src/vajo_tui.py:335
+#: vajo_gui.py:2322 vajo_tui.py:231 vajo_tui.py:335
 msgid "View pinned state"
 msgstr "查看固定状态"
 
-#: src/vajo_gui.py:2069 src/vajo_tui.py:549
+#: vajo_gui.py:2333 vajo_tui.py:553
 msgid "unknown"
 msgstr "未知"
 
-#: src/vajo_gui.py:2074
+#: vajo_gui.py:2338
 msgid "System is pinned to a previous version"
 msgstr "系统已固定到之前的版本"
 
-#: src/vajo_gui.py:2077
+#: vajo_gui.py:2341
 msgid ""
 "Desktop: {}\n"
 "\n"
@@ -570,43 +582,43 @@ msgstr ""
 "点击“取消固定”以移除固定。之后您可以进一步回滚，\n"
 "或在准备就绪后执行完整升级。"
 
-#: src/vajo_gui.py:2084
+#: vajo_gui.py:2348
 msgid "Unpin"
 msgstr "取消固定"
 
-#: src/vajo_gui.py:2093 src/vajo_tui.py:580
+#: vajo_gui.py:2357 vajo_tui.py:584
 msgid "Unpinning..."
 msgstr "正在取消固定..."
 
-#: src/vajo_gui.py:2113
+#: vajo_gui.py:2377
 msgid "Unpinned. You can now roll back further or upgrade."
 msgstr "已取消固定。您现在可以进一步回滚或升级。"
 
-#: src/vajo_gui.py:2115 src/vajo_tui.py:594
+#: vajo_gui.py:2379 vajo_tui.py:598
 msgid "Error during unpin"
 msgstr "取消固定时出错"
 
-#: src/vajo_gui.py:2125 src/vajo_tui.py:1256
+#: vajo_gui.py:2389 vajo_tui.py:1266
 msgid "Checking rollback availability..."
 msgstr "正在检查回滚可用性..."
 
-#: src/vajo_gui.py:2130 src/vajo_tui.py:1265
+#: vajo_gui.py:2394 vajo_tui.py:1275
 msgid "Cannot determine current desktop version."
 msgstr "无法确定当前桌面版本。"
 
-#: src/vajo_gui.py:2158 src/vajo_tui.py:1274
+#: vajo_gui.py:2422 vajo_tui.py:1284
 msgid "No previous version available to roll back to."
 msgstr "没有可回滚的先前版本。"
 
-#: src/vajo_gui.py:2170 src/vajo_tui.py:1228
+#: vajo_gui.py:2434 vajo_tui.py:1238
 msgid "Select rollback target"
 msgstr "选择回滚目标"
 
-#: src/vajo_gui.py:2176
+#: vajo_gui.py:2440
 msgid "Cancel"
 msgstr "取消"
 
-#: src/vajo_gui.py:2190
+#: vajo_gui.py:2454
 msgid ""
 "<b>Choose a version to roll back to:</b>\n"
 "\n"
@@ -626,23 +638,23 @@ msgstr ""
 "\n"
 "您之后可以通过同一菜单取消固定以恢复正常更新。"
 
-#: src/vajo_gui.py:2213
+#: vajo_gui.py:2477
 msgid "Date"
 msgstr "日期"
 
-#: src/vajo_gui.py:2213
+#: vajo_gui.py:2477
 msgid "Desktop"
 msgstr "桌面"
 
-#: src/vajo_gui.py:2213
+#: vajo_gui.py:2477
 msgid "Community"
 msgstr "社区"
 
-#: src/vajo_gui.py:2244
+#: vajo_gui.py:2508
 msgid "Roll back to {}?"
 msgstr "回滚到 {}？"
 
-#: src/vajo_gui.py:2246
+#: vajo_gui.py:2510
 msgid ""
 "This will revert your system to:\n"
 "\n"
@@ -666,36 +678,35 @@ msgstr ""
 "\n"
 "确定要继续吗？"
 
-#: src/vajo_gui.py:2264 src/vajo_tui.py:1302
+#: vajo_gui.py:2528 vajo_tui.py:1312
 msgid "Rolling back..."
 msgstr "正在回滚..."
 
-#: src/vajo_gui.py:2292 src/vajo_tui.py:1311 src/modules/rollback.py:645
+#: vajo_gui.py:2556 vajo_tui.py:1321 modules/rollback.py:645
 msgid "Rollback completed successfully"
 msgstr "回滚成功完成"
 
-#: src/vajo_tui.py:170 src/vajo_tui.py:341
+#: vajo_tui.py:170 vajo_tui.py:343
 msgid "System information"
 msgstr ""
 
-#: src/vajo_tui.py:340 src/vajo_tui.py:1186 src/vajo_tui.py:1253
-#: src/vajo_tui.py:1274
+#: vajo_tui.py:342 vajo_tui.py:1196 vajo_tui.py:1263 vajo_tui.py:1284
 msgid "Info"
 msgstr "信息"
 
-#: src/vajo_tui.py:340
+#: vajo_tui.py:342
 msgid "Opening luet documentation (URL TBD)"
 msgstr "正在打开 luet 文档（URL 待定）"
 
-#: src/vajo_tui.py:362
+#: vajo_tui.py:366
 msgid "Not Synced"
 msgstr "未同步"
 
-#: src/vajo_tui.py:536 src/vajo_core.py:1100
+#: vajo_tui.py:540 vajo_core.py:1158
 msgid "repositories not synced"
 msgstr "仓库未同步"
 
-#: src/vajo_tui.py:550
+#: vajo_tui.py:554
 msgid ""
 "System is pinned to a previous version.\n"
 "\n"
@@ -709,36 +720,36 @@ msgstr ""
 "\n"
 "固定期间，更新和回滚功能已禁用。"
 
-#: src/vajo_tui.py:566
+#: vajo_tui.py:570
 msgid "Press 'u' to unpin, any other key to close."
 msgstr "按 'u' 取消固定，按任意其他键关闭。"
 
-#: src/vajo_tui.py:578
+#: vajo_tui.py:582
 msgid "Unpin the system?"
 msgstr "取消固定系统？"
 
-#: src/vajo_tui.py:631
+#: vajo_tui.py:635
 msgid "Terminal too small! Min 20x80."
 msgstr "终端太小！至少需要 20x80。"
 
-#: src/vajo_tui.py:787
+#: vajo_tui.py:791
 msgid " Results "
 msgstr " 结果 "
 
-#: src/vajo_tui.py:789
+#: vajo_tui.py:793
 msgid " Filtered Results: {} "
 msgstr ""
 
-#: src/vajo_tui.py:852
+#: vajo_tui.py:856
 msgid "Scrolled Up: {} line."
 msgid_plural "Scrolled Up: {} lines."
 msgstr[0] "已向上滚动：{} 行"
 
-#: src/vajo_tui.py:853
+#: vajo_tui.py:857
 msgid "{} ({} PgUp/PgDn to navigate)"
 msgstr "{}（使用 PgUp/PgDn 导航 {}）"
 
-#: src/vajo_tui.py:883
+#: vajo_tui.py:887
 msgid ""
 "Keys: F9=menu | s=search | Enter=details | i=install/uninstall | l=toggle "
 "log | PgUp/PgDn=log scroll | q=quit"
@@ -746,34 +757,34 @@ msgstr ""
 "按键：F9=菜单 | s=搜索 | Enter=详情 | i=安装/卸载 | l=切换日志 | PgUp/PgDn=滚"
 "动日志 | q=退出"
 
-#: src/vajo_tui.py:885
+#: vajo_tui.py:889
 msgid ""
 "SEARCH: Enter=submit | Esc/Down/Tab=back to list | Backspace/Del/Arrows=edit "
 "| q=quit"
 msgstr ""
 "搜索：Enter=提交 | Esc/向下/Tab=返回列表 | Backspace/Del/方向键=编辑 | q=退出"
 
-#: src/vajo_tui.py:944
+#: vajo_tui.py:948
 msgid "Press 'y' to confirm, any other key to cancel."
 msgstr "按 'y' 确认，按任意其他键取消。"
 
-#: src/vajo_tui.py:966
+#: vajo_tui.py:970
 msgid "Press any key to continue"
 msgstr "按任意键继续"
 
-#: src/vajo_tui.py:1022
+#: vajo_tui.py:1033
 msgid "Full system upgrade initiated."
 msgstr "系统完整升级已启动。"
 
-#: src/vajo_tui.py:1082
+#: vajo_tui.py:1092
 msgid "Upgrade initiation failed: {}"
 msgstr "启动升级失败：{}"
 
-#: src/vajo_tui.py:1083
+#: vajo_tui.py:1093
 msgid "Upgrade failed to start"
 msgstr "升级无法启动"
 
-#: src/vajo_tui.py:1101
+#: vajo_tui.py:1111
 msgid ""
 "\n"
 "--- Missing packages found. Starting repair sequence. ---"
@@ -781,60 +792,64 @@ msgstr ""
 "\n"
 "--- 发现缺失的软件包。正在启动修复序列。 ---"
 
-#: src/vajo_tui.py:1105
+#: vajo_tui.py:1115
 msgid "System repair finished successfully."
 msgstr "系统修复成功完成。"
 
-#: src/vajo_tui.py:1123
+#: vajo_tui.py:1133
 msgid "Config module not available."
 msgstr "配置模块不可用。"
 
-#: src/vajo_tui.py:1146
+#: vajo_tui.py:1156
 msgid " Preferences "
 msgstr " 首选项 "
 
-#: src/vajo_tui.py:1148
+#: vajo_tui.py:1158
 msgid "Space=toggle  Enter/Esc=close"
 msgstr "空格=切换  Enter/Esc=关闭"
 
-#: src/vajo_tui.py:1161
+#: vajo_tui.py:1171
 msgid " (unavailable)"
 msgstr "（不可用）"
 
-#: src/vajo_tui.py:1186
+#: vajo_tui.py:1176
+msgid "Changes take effect after restarting Vajo."
+msgstr "更改将在重启 Vajo 后生效。"
+
+#: vajo_tui.py:1196
 msgid "No cache to clear"
 msgstr "没有可清除的缓存"
 
-#: src/vajo_tui.py:1194
+#: vajo_tui.py:1204
 msgid "--- Running 'luet cleanup' ---"
 msgstr "--- 正在运行 'luet cleanup' ---"
 
-#: src/vajo_tui.py:1199
+#: vajo_tui.py:1209
 msgid "Luet cache cleanup finished successfully."
 msgstr "Luet 缓存清理成功完成。"
 
-#: src/vajo_tui.py:1203
+#: vajo_tui.py:1213
 msgid "Luet cache cleanup finished with errors."
 msgstr "Luet 缓存清理完成，但有错误。"
 
-#: src/vajo_tui.py:1229
+#: vajo_tui.py:1239
 msgid ""
 "System will be pinned after rollback — upgrades disabled until unpinned."
 msgstr "回滚后系统将被固定 — 升级功能将禁用直至取消固定。"
 
-#: src/vajo_tui.py:1234
+#: vajo_tui.py:1244
 msgid "↑↓ select   Enter confirm   Esc cancel"
 msgstr "↑↓ 选择   Enter 确认   Esc 取消"
 
-#: src/vajo_tui.py:1253
+#: vajo_tui.py:1263
 msgid "Roll back is only available on stable repositories."
 msgstr "回滚功能仅在稳定仓库上可用。"
 
-#: src/vajo_tui.py:1265
+#: vajo_tui.py:1275
 msgid "Error"
 msgstr "错误"
 
-#: src/vajo_tui.py:1287
+#: vajo_tui.py:1297
 msgid ""
 "Roll back to {}?\n"
 "\n"
@@ -854,169 +869,163 @@ msgstr ""
 "系统将被固定 — 更新和仓库同步\n"
 "将被禁用，直到您通过“回滚”菜单取消固定。"
 
-#: src/vajo_tui.py:1376
-#, fuzzy
-msgid "Gathering system information..."
-msgstr "正在检查系统缺失文件..."
-
-#: src/vajo_tui.py:1461
+#: vajo_tui.py:1454
 msgid "Search core error: {}"
 msgstr "搜索核心错误：{}"
 
-#: src/vajo_tui.py:1462 src/vajo_tui.py:1504 src/vajo_core.py:872
-#: src/vajo_core.py:890
+#: vajo_tui.py:1455 vajo_tui.py:1497 vajo_core.py:889 vajo_core.py:907
 msgid "Error executing the search command"
 msgstr "执行搜索命令时出错"
 
-#: src/vajo_tui.py:1503
+#: vajo_tui.py:1496
 msgid "Search result processing failed: {}"
 msgstr "搜索结果处理失败：{}"
 
-#: src/vajo_tui.py:1542
+#: vajo_tui.py:1536
 msgid "Error removing {}."
 msgstr "移除 {} 时出错。"
 
-#: src/vajo_tui.py:1559
+#: vajo_tui.py:1553
 msgid "Error removing package"
 msgstr "移除软件包时出错"
 
-#: src/vajo_tui.py:1572
+#: vajo_tui.py:1566
 msgid "Error installing {}."
 msgstr "安装 {} 时出错。"
 
-#: src/vajo_tui.py:1631
+#: vajo_tui.py:1626
 msgid "Error uninstalling: '{}'"
 msgstr "卸载时出错：'{}'"
 
-#: src/vajo_tui.py:1664
+#: vajo_tui.py:1659
 msgid "Error installing: '{}'"
 msgstr "安装时出错：'{}'"
 
-#: src/vajo_tui.py:1694
+#: vajo_tui.py:1689
 msgid "Package:     {}"
 msgstr "软件包：     {}"
 
-#: src/vajo_tui.py:1695
+#: vajo_tui.py:1690
 msgid "Version:     {}"
 msgstr "版本：     {}"
 
-#: src/vajo_tui.py:1696
+#: vajo_tui.py:1691
 msgid "Installed:   {}"
 msgstr "已安装：   {}"
 
-#: src/vajo_tui.py:1697
+#: vajo_tui.py:1692
 msgid "Repository:  {}"
 msgstr "仓库：  {}"
 
-#: src/vajo_tui.py:1700
+#: vajo_tui.py:1695
 msgid "License:     {}"
 msgstr "许可证：     {}"
 
-#: src/vajo_tui.py:1704
+#: vajo_tui.py:1699
 msgid "Description: {}"
 msgstr "描述： {}"
 
-#: src/vajo_tui.py:1708
+#: vajo_tui.py:1703
 msgid "Homepage:    {}"
 msgstr "主页：    {}"
 
-#: src/vajo_tui.py:1710
+#: vajo_tui.py:1705
 msgid "Flathub:     https://flathub.org/apps/{}"
 msgstr "Flathub：     https://flathub.org/apps/{}"
 
-#: src/vajo_tui.py:1712
+#: vajo_tui.py:1707
 msgid "Details for {}"
 msgstr "{} 的详情"
 
-#: src/vajo_tui.py:1745
+#: vajo_tui.py:1740
 msgid "Protection status:"
 msgstr "保护状态："
 
-#: src/vajo_tui.py:1747
+#: vajo_tui.py:1742
 msgid "Details for {}/{}"
 msgstr "{}/{} 的详情"
 
-#: src/vajo_tui.py:1794
+#: vajo_tui.py:1789
 msgid "Line {}/{}"
 msgstr "第 {}/{} 行"
 
-#: src/vajo_tui.py:1804
+#: vajo_tui.py:1799
 msgid "remove disabled (has revdeps)"
 msgstr "移除已禁用（有反向依赖）"
 
-#: src/vajo_tui.py:1807
+#: vajo_tui.py:1802
 msgid "update"
 msgstr ""
 
-#: src/vajo_tui.py:1808
+#: vajo_tui.py:1803
 msgid "remove"
 msgstr "移除"
 
-#: src/vajo_tui.py:1808
+#: vajo_tui.py:1803
 msgid "install"
 msgstr "安装"
 
-#: src/vajo_tui.py:1928
+#: vajo_tui.py:1923
 msgid "Required by for {}/{}"
 msgstr "{}/{} 被以下软件包依赖"
 
-#: src/vajo_tui.py:1929
+#: vajo_tui.py:1924
 msgid "Loading required by list..."
 msgstr "正在加载依赖关系列表..."
 
-#: src/vajo_tui.py:1961
+#: vajo_tui.py:1956
 msgid "This package is not required by any other package."
 msgstr "没有其他软件包依赖此软件包。"
 
-#: src/vajo_tui.py:1963 src/vajo_tui.py:2096
+#: vajo_tui.py:1958 vajo_tui.py:2091
 msgid "Press any key to close"
 msgstr "按任意键关闭"
 
-#: src/vajo_tui.py:1982
+#: vajo_tui.py:1977
 msgid "Required by for {}/{} ({} packages)"
 msgstr "{}/{} 被以下软件包依赖（{} 个软件包）"
 
-#: src/vajo_tui.py:1991
+#: vajo_tui.py:1986
 msgid "Package {}/{} | Page {}/{}"
 msgstr "软件包 {}/{} | 第 {}/{} 页"
 
-#: src/vajo_tui.py:2000 src/vajo_tui.py:2130
+#: vajo_tui.py:1995 vajo_tui.py:2125
 msgid "Keys: Up/Down/PgUp/PgDn=scroll | Any other key=close"
 msgstr "按键：Up/Down/PgUp/PgDn=滚动 | 任意其他键=关闭"
 
-#: src/vajo_tui.py:2054
+#: vajo_tui.py:2049
 msgid "Files for {}/{}"
 msgstr "{}/{} 的文件"
 
-#: src/vajo_tui.py:2055
+#: vajo_tui.py:2050
 msgid "Loading file list..."
 msgstr "正在加载文件列表..."
 
-#: src/vajo_tui.py:2094
+#: vajo_tui.py:2089
 msgid "No files found or package not installed"
 msgstr "未找到文件或软件包未安装"
 
-#: src/vajo_tui.py:2112
+#: vajo_tui.py:2107
 msgid "Files for {}/{} ({} files)"
 msgstr "{}/{} 的文件（{} 个文件）"
 
-#: src/vajo_tui.py:2121
+#: vajo_tui.py:2116
 msgid "File {}/{} | Page {}/{}"
 msgstr "文件 {}/{} | 第 {}/{} 页"
 
-#: src/vajo_tui.py:2388
+#: vajo_tui.py:2383
 msgid "An error occurred outside of curses: {}"
 msgstr "curses 外部发生错误：{}"
 
-#: src/vajo_core.py:147
+#: vajo_core.py:147
 msgid "Vajo: a Luet Package Manager Frontend"
 msgstr "Vajo：Luet 软件包管理器前端"
 
-#: src/vajo_core.py:155
+#: vajo_core.py:155
 msgid "© 2023 - 2026 MocaccinoOS. All Rights Reserved"
 msgstr "© 2023 - 2026 MocaccinoOS。保留所有权利。"
 
-#: src/vajo_core.py:172
+#: vajo_core.py:172
 msgid ""
 "Vajo: a Luet Package Manager TUI (ncurses)\n"
 "Version: {}\n"
@@ -1030,11 +1039,11 @@ msgstr ""
 "作者：{}\n"
 "（使用 vajo_core.py）"
 
-#: src/vajo_core.py:204
+#: vajo_core.py:204
 msgid "No elevation helper available"
 msgstr "没有可用的提权助手"
 
-#: src/vajo_core.py:254
+#: vajo_core.py:254
 msgid ""
 "\n"
 "Error executing command: {}\n"
@@ -1042,47 +1051,47 @@ msgstr ""
 "\n"
 "执行命令时出错：{}\n"
 
-#: src/vajo_core.py:378
+#: vajo_core.py:378
 msgid "Updating repositories"
 msgstr "正在更新仓库"
 
-#: src/vajo_core.py:477
+#: vajo_core.py:491
 msgid "luet oscheck failed with return code {}"
 msgstr "luet oscheck 失败，返回码 {}"
 
-#: src/vajo_core.py:483
+#: vajo_core.py:498
 msgid "Repair sequence started for {} missing packages.\n"
 msgstr "已为 {} 个缺失的软件包启动修复序列。\n"
 
-#: src/vajo_core.py:484
+#: vajo_core.py:499
 msgid "Found {} missing packages. Starting repair immediately.\n"
 msgstr "发现 {} 个缺失的软件包。立即开始修复。\n"
 
-#: src/vajo_core.py:490
+#: vajo_core.py:505
 msgid "Reinstalling {}..."
 msgstr "正在重新安装 {}..."
 
-#: src/vajo_core.py:503
+#: vajo_core.py:518
 msgid "Failed reinstalling {}"
 msgstr "重新安装 {} 失败"
 
-#: src/vajo_core.py:514
+#: vajo_core.py:530
 msgid "System check failed due to exception"
 msgstr "系统检查因异常而失败"
 
-#: src/vajo_core.py:569
+#: vajo_core.py:586
 msgid "Error starting upgrade process"
 msgstr "启动升级过程时出错"
 
-#: src/vajo_core.py:577
+#: vajo_core.py:594
 msgid "Error during initial upgrade step"
 msgstr "初始升级步骤中出错"
 
-#: src/vajo_core.py:586 src/vajo_core.py:599
+#: vajo_core.py:603 vajo_core.py:616
 msgid "System upgrade completed successfully"
 msgstr "系统升级成功完成"
 
-#: src/vajo_core.py:589
+#: vajo_core.py:606
 msgid ""
 "\n"
 "--- Repositories updated, continuing with package upgrade... ---\n"
@@ -1092,191 +1101,183 @@ msgstr ""
 "--- 仓库已更新，正在继续软件包升级... ---\n"
 "\n"
 
-#: src/vajo_core.py:590
+#: vajo_core.py:607
 msgid "Continuing with package upgrade..."
 msgstr "正在继续软件包升级..."
 
-#: src/vajo_core.py:603
+#: vajo_core.py:620
 msgid "Error starting second upgrade step"
 msgstr "启动第二升级步骤时出错"
 
-#: src/vajo_core.py:887
+#: vajo_core.py:904
 msgid "Invalid JSON output"
 msgstr "无效的 JSON 输出"
 
-#: src/vajo_core.py:1078
+#: vajo_core.py:1136
 #, python-format
 msgid "%d day ago"
 msgid_plural "%d days ago"
 msgstr[0] "%d 天前"
 
-#: src/vajo_core.py:1081
+#: vajo_core.py:1139
 #, python-format
 msgid "%d hour ago"
 msgid_plural "%d hours ago"
 msgstr[0] "%d 小时前"
 
-#: src/vajo_core.py:1084
+#: vajo_core.py:1142
 #, python-format
 msgid "%d minute ago"
 msgid_plural "%d minutes ago"
 msgstr[0] "%d 分钟前"
 
-#: src/vajo_core.py:1086
+#: vajo_core.py:1144
 msgid "just now"
 msgstr "刚刚"
 
-#: src/vajo_core.py:1120 src/vajo_core.py:1266
+#: vajo_core.py:1178 vajo_core.py:1346
 msgid "(none)"
 msgstr "（无）"
 
-#: src/vajo_core.py:1192
+#: vajo_core.py:1271
 msgid "No metadata found for this package."
 msgstr "未找到此软件包的元数据。"
 
-#: src/vajo_core.py:1200
+#: vajo_core.py:1279
 msgid "Installed"
 msgstr "已安装"
 
-#: src/vajo_core.py:1201
+#: vajo_core.py:1280
 msgid "License"
 msgstr "许可证"
 
-#: src/vajo_core.py:1205
+#: vajo_core.py:1284
 msgid "Description"
 msgstr "描述"
 
-#: src/vajo_core.py:1206
+#: vajo_core.py:1285
 msgid "Homepage"
 msgstr "主页"
 
-#: src/vajo_core.py:1217
+#: vajo_core.py:1296
 msgid "(unknown)"
 msgstr "（未知）"
 
-#: src/modules/flatpak.py:465 src/modules/flatpak.py:698
-msgid "Flatpak"
-msgstr "Flatpak"
-
-#: src/modules/flatpak.py:687
-msgid "AudioVideo"
-msgstr "音视频"
-
-#: src/modules/flatpak.py:688
-msgid "Development"
-msgstr "开发"
-
-#: src/modules/flatpak.py:689
-msgid "Education"
-msgstr "教育"
-
-#: src/modules/flatpak.py:690
-msgid "Game"
-msgstr "游戏"
-
-#: src/modules/flatpak.py:691
-msgid "Graphics"
-msgstr "图形"
-
-#: src/modules/flatpak.py:692
-msgid "Network"
-msgstr "网络"
-
-#: src/modules/flatpak.py:693
-msgid "Office"
-msgstr "办公"
-
-#: src/modules/flatpak.py:694
-msgid "Science"
-msgstr "科学"
-
-#: src/modules/flatpak.py:695
-msgid "Settings"
-msgstr "设置"
-
-#: src/modules/flatpak.py:696
-msgid "System"
-msgstr "系统"
-
-#: src/modules/flatpak.py:697
-msgid "Utility"
-msgstr "工具"
-
-#: src/modules/rollback.py:406
+#: modules/rollback.py:406
 msgid "Previous"
 msgstr "上一个"
 
-#: src/modules/rollback.py:406
+#: modules/rollback.py:406
 msgid "{} versions back"
 msgstr "回退 {} 个版本"
 
-#: src/modules/rollback.py:424
+#: modules/rollback.py:424
 msgid "~1 year ago"
 msgstr "约 1 年前"
 
-#: src/modules/rollback.py:426
+#: modules/rollback.py:426
 msgid "~2 years ago"
 msgstr "约 2 年前"
 
-#: src/modules/rollback.py:615
+#: modules/rollback.py:615
 msgid "Failed to write repository configuration"
 msgstr "写入仓库配置失败"
 
-#: src/modules/rollback.py:646
+#: modules/rollback.py:646
 msgid "Rollback failed during upgrade"
 msgstr "升级过程中回滚失败"
 
-#: src/modules/system.py:24
+#: modules/system.py:24
 msgid "Hostname:"
 msgstr ""
 
-#: src/modules/system.py:28 src/modules/system.py:45 src/modules/system.py:97
-#: src/modules/system.py:98 src/modules/system.py:107 src/modules/system.py:113
-#: src/modules/system.py:126
+#: modules/system.py:28 modules/system.py:45 modules/system.py:97
+#: modules/system.py:98 modules/system.py:107 modules/system.py:113
+#: modules/system.py:126
 #, fuzzy
 msgid "Unknown"
 msgstr "未知"
 
-#: src/modules/system.py:37
+#: modules/system.py:37
 msgid "Operating System:"
 msgstr ""
 
-#: src/modules/system.py:40
+#: modules/system.py:40
 #, fuzzy
 msgid "Kernel Version:"
 msgstr "版本："
 
-#: src/modules/system.py:51
+#: modules/system.py:51
 msgid "CPU:"
 msgstr ""
 
-#: src/modules/system.py:64
+#: modules/system.py:64
 msgid "RAM:"
 msgstr ""
 
-#: src/modules/system.py:75
+#: modules/system.py:75
 msgid "Uptime:"
 msgstr ""
 
-#: src/modules/system.py:84
+#: modules/system.py:84
 msgid "Local IP Address:"
 msgstr ""
 
-#: src/modules/system.py:92
+#: modules/system.py:92
 msgid "free of"
 msgstr ""
 
-#: src/modules/system.py:93
+#: modules/system.py:93
 msgid "Disk Space (/):"
 msgstr ""
 
-#: src/modules/system.py:133
+#: modules/system.py:133
 msgid "GPU Card:"
 msgstr ""
 
-#: src/modules/system.py:134
+#: modules/system.py:134
 msgid "GPU Driver:"
 msgstr ""
+
+#, fuzzy
+#~ msgid "Gathering system information..."
+#~ msgstr "正在检查系统缺失文件..."
+
+#~ msgid "Flatpak"
+#~ msgstr "Flatpak"
+
+#~ msgid "AudioVideo"
+#~ msgstr "音视频"
+
+#~ msgid "Development"
+#~ msgstr "开发"
+
+#~ msgid "Education"
+#~ msgstr "教育"
+
+#~ msgid "Game"
+#~ msgstr "游戏"
+
+#~ msgid "Graphics"
+#~ msgstr "图形"
+
+#~ msgid "Network"
+#~ msgstr "网络"
+
+#~ msgid "Office"
+#~ msgstr "办公"
+
+#~ msgid "Science"
+#~ msgstr "科学"
+
+#~ msgid "Settings"
+#~ msgstr "设置"
+
+#~ msgid "System"
+#~ msgstr "系统"
+
+#~ msgid "Utility"
+#~ msgstr "工具"
 
 #~ msgid "Starting Vajo: a Luet TUI frontend..."
 #~ msgstr "正在启动 Vajo：Luet TUI 前端..."
