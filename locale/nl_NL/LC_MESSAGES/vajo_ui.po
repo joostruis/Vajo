@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-06-26 22:59+0200\n"
-"PO-Revision-Date: 2026-05-25 13:22+0200\n"
+"PO-Revision-Date: 2026-06-27 14:51+0200\n"
 "Last-Translator: \n"
 "Language-Team: Dutch <vertaling@vrijschrift.org>\n"
 "Language: nl\n"
@@ -69,11 +69,11 @@ msgstr ""
 
 #: vajo_gui.py:138
 msgid "Appearance"
-msgstr ""
+msgstr "Weergave"
 
 #: vajo_gui.py:143
 msgid "Prefer dark theme"
-msgstr ""
+msgstr "Donker thema gebruiken"
 
 #: vajo_gui.py:146
 msgid ""
@@ -81,9 +81,11 @@ msgid ""
 "Overrides the system theme preference.\n"
 "Takes effect immediately."
 msgstr ""
+"Forceer Vajo om de donkere GTK-thema-variant te gebruiken.\n"
+"Negeert de systeeminstelling voor het thema.\n"
+"De wijziging wordt onmiddellijk toegepast."
 
 #: vajo_gui.py:153
-#, fuzzy
 msgid "Module changes take effect after restarting Vajo."
 msgstr "Wijzigingen worden van kracht na het herstarten van Vajo."
 
@@ -97,7 +99,7 @@ msgstr "Git repository"
 
 #: vajo_gui.py:216
 msgid "Screenshot Preview"
-msgstr ""
+msgstr "Voorbeeld van schermafbeelding"
 
 #: vajo_gui.py:284
 msgid "Package Details"
@@ -125,7 +127,7 @@ msgstr "Nee"
 
 #: vajo_gui.py:359 vajo_gui.py:411
 msgid "Homepage:"
-msgstr "Homepage"
+msgstr "Homepage:"
 
 #: vajo_gui.py:361 vajo_gui.py:418
 msgid "Repository:"
@@ -157,7 +159,7 @@ msgstr "Bestand"
 
 #: vajo_gui.py:507 vajo_tui.py:819
 msgid "Update"
-msgstr ""
+msgstr "Update"
 
 #: vajo_gui.py:511 vajo_gui.py:1372 vajo_gui.py:1540 vajo_gui.py:1542
 #: vajo_tui.py:821 vajo_tui.py:823
@@ -274,7 +276,7 @@ msgstr "Afsluiten"
 
 #: vajo_gui.py:1040 vajo_tui.py:1386
 msgid "System Information"
-msgstr ""
+msgstr "Syteem Informatie"
 
 #: vajo_gui.py:1044 vajo_tui.py:170 vajo_tui.py:341
 msgid "Documentation"
@@ -282,7 +284,7 @@ msgstr "Documentatie"
 
 #: vajo_gui.py:1047
 msgid "Donate"
-msgstr ""
+msgstr "Doneer"
 
 #: vajo_gui.py:1050 vajo_tui.py:170 vajo_tui.py:346 vajo_tui.py:349
 msgid "About"
@@ -337,9 +339,8 @@ msgid "Details"
 msgstr "Details"
 
 #: vajo_gui.py:1284
-#, fuzzy
 msgid "Back to Search"
-msgstr "Luet Pakketzoeker"
+msgstr "Terug naar Zoeken"
 
 #: vajo_gui.py:1302 vajo_tui.py:853 vajo_tui.py:878
 msgid "Toggle output log"
@@ -433,9 +434,8 @@ msgid "Refreshing results..."
 msgstr "Resultaten vernieuwen..."
 
 #: vajo_gui.py:1955
-#, fuzzy
 msgid "This will install the Flatpak from {}."
-msgstr "Hiermee wordt de Flatpak geïnstalleerd vanaf Flathub."
+msgstr "Hiermee wordt de Flatpak geïnstalleerd vanaf {}."
 
 #: vajo_gui.py:1957 vajo_tui.py:1564
 msgid "Installed {}."
@@ -479,7 +479,7 @@ msgstr "Bezig met verwijderen van {}..."
 
 #: vajo_gui.py:1974 vajo_tui.py:1866
 msgid "Updated {}."
-msgstr ""
+msgstr "{} bijgewerkt."
 
 #: vajo_gui.py:1975 vajo_tui.py:1868
 msgid "Error updating {}"
@@ -697,7 +697,7 @@ msgstr "Terugdraaien succesvol voltooid"
 
 #: vajo_tui.py:170 vajo_tui.py:343
 msgid "System information"
-msgstr ""
+msgstr "Systeeminformatie"
 
 #: vajo_tui.py:342 vajo_tui.py:1196 vajo_tui.py:1263 vajo_tui.py:1284
 msgid "Info"
@@ -747,7 +747,7 @@ msgstr " Resultaten "
 
 #: vajo_tui.py:793
 msgid " Filtered Results: {} "
-msgstr ""
+msgstr " Gefilterde resultaten: {} "
 
 #: vajo_tui.py:856
 msgid "Scrolled Up: {} line."
@@ -969,7 +969,7 @@ msgstr "verwijder uitgeschakelde (heeft afhankelijkheden)"
 
 #: vajo_tui.py:1802
 msgid "update"
-msgstr ""
+msgstr "update"
 
 #: vajo_tui.py:1803
 msgid "remove"
@@ -1206,55 +1206,53 @@ msgstr "Terugdraaien mislukt tijdens de upgrade"
 
 #: modules/system.py:24
 msgid "Hostname:"
-msgstr ""
+msgstr "Hostname:"
 
 #: modules/system.py:28 modules/system.py:45 modules/system.py:97
 #: modules/system.py:98 modules/system.py:107 modules/system.py:113
 #: modules/system.py:126
-#, fuzzy
 msgid "Unknown"
-msgstr "onbekend"
+msgstr "Onbekend"
 
 #: modules/system.py:37
 msgid "Operating System:"
-msgstr ""
+msgstr "Besturingssysteem:"
 
 #: modules/system.py:40
-#, fuzzy
 msgid "Kernel Version:"
-msgstr "Versie:"
+msgstr "Kernel Versie:"
 
 #: modules/system.py:51
 msgid "CPU:"
-msgstr ""
+msgstr "Processor:"
 
 #: modules/system.py:64
 msgid "RAM:"
-msgstr ""
+msgstr "RAM:"
 
 #: modules/system.py:75
 msgid "Uptime:"
-msgstr ""
+msgstr "Tijd actief:"
 
 #: modules/system.py:84
 msgid "Local IP Address:"
-msgstr ""
+msgstr "Lokaal IP-adres:"
 
 #: modules/system.py:92
 msgid "free of"
-msgstr ""
+msgstr "vrij van"
 
 #: modules/system.py:93
 msgid "Disk Space (/):"
-msgstr ""
+msgstr "Schijfruimte (/):"
 
 #: modules/system.py:133
 msgid "GPU Card:"
-msgstr ""
+msgstr "Grafische kaart:"
 
 #: modules/system.py:134
 msgid "GPU Driver:"
-msgstr ""
+msgstr "Grafisch stuurprogramma:"
 
 #, fuzzy
 #~ msgid "Gathering system information..."
